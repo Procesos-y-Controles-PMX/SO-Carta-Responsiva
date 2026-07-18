@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #171717;
+  --brand: #ED1C24;
+  --brand-hover: #c9171e;
+  --brand-active: #a81419;
+  --surface: #eef3f7;
+  --steel: #34507A;
+  --steel-tint: rgba(52, 80, 122, 0.12);
+  --brand-tint: rgba(237, 28, 36, 0.09);
+  --console-bg: #0d1117;
+  --status-crit: #DC2626;
+  --focus-ring-color: var(--steel);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 14px 30px -20px rgba(16, 24, 40, 0.25);
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-active: var(--brand-active);
+  --color-steel: var(--steel);
+  --font-display: var(--font-saira);
+  --font-sans: var(--font-plex-sans);
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 5px;
+  --radius-3xl: 8px;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.app-canvas {
+  background-color: #f3f6fa;
+}
+
+.app-canvas-dots {
+  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.32) 0.8px, transparent 0.8px);
+  background-size: 20px 20px;
+}
+
+@keyframes module-enter-up {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes module-enter-down {
+  from { opacity: 0; transform: translate3d(0, -22px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes module-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.module-enter-up { animation: module-enter-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) both; }
+.module-enter-down { animation: module-enter-down 0.28s cubic-bezier(0.32, 0.72, 0, 1) both; }
+.module-enter-fade { animation: module-enter-fade 0.22s ease-out both; }
+
+.app-safe-x {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 768px) {
+  .app-safe-x {
+    padding-left: max(2rem, env(safe-area-inset-left));
+    padding-right: max(2rem, env(safe-area-inset-right));
+  }
+}
+
+.app-main-pad {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .app-main-pad {
+    padding-bottom: 1.5rem;
+  }
+}
+
+.btn-primary {
+  @apply inline-flex min-h-10 items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all;
+  background-color: var(--brand);
+}
+
+.btn-primary:hover {
+  background-color: var(--brand-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:-translate-y-px hover:bg-slate-50 hover:shadow-sm;
+}
+
+.input-field {
+  @apply w-full rounded-sm border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors focus:border-steel focus:ring-1 focus:ring-steel/30;
+}
+
+.card-panel {
+  @apply rounded-sm border border-slate-200/80 bg-white;
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.sidebar-scroll:hover {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+@media (max-width: 639px) {
+  .app-safe-x {
+    padding-left: max(0.875rem, env(safe-area-inset-left));
+    padding-right: max(0.875rem, env(safe-area-inset-right));
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+  }
+
+  .input-field {
+    min-height: 48px;
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-enter-up,
+  .module-enter-down,
+  .module-enter-fade {
+    animation: module-enter-fade 0.15s ease-out both;
+  }
+
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+}
+
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
+}
