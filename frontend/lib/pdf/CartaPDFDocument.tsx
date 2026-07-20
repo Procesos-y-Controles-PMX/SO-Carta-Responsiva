@@ -1,6 +1,5 @@
 import {
   Document,
-  Image,
   Page,
   StyleSheet,
   Text,
@@ -10,8 +9,8 @@ import { CARTA_INTRO_TEMPLATE, MERCANCIA_ABORDO_POINTS } from "@/lib/carta/terms
 import type { CartaWithRelations } from "@/lib/queries/cartas";
 import { formatQuantity, money } from "@/lib/utils";
 
-const BRAND_RED = "#DA291C";
-const BRAND_GRAY = "#54565A";
+const BRAND_RED = "#DB2C27";
+const BRAND_GRAY = "#54545B";
 const TEXT_BLACK = "#000000";
 const TEXT_ON_GRAY = "#FFFFFF";
 const BORDER_LIGHT = "#D1D3D4";
@@ -28,78 +27,57 @@ function pdfDate(value: string): string {
 
 const styles = StyleSheet.create({
   page: {
-    fontSize: 8,
+    fontSize: 11,
     fontFamily: "Helvetica",
     backgroundColor: "#FFFFFF",
     color: TEXT_BLACK,
-    paddingHorizontal: 34,
-    paddingTop: 24,
-    paddingBottom: 30,
-  },
-  headerLogoWrap: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  headerLogo: {
-    width: 180,
-    height: 34,
-    objectFit: "contain",
-  },
-  headerDivider: {
-    borderBottom: `3 solid ${BRAND_RED}`,
-    marginBottom: 12,
+    padding: 36,
   },
   title: {
-    fontSize: 11,
+    fontSize: 20,
     fontWeight: 700,
     backgroundColor: BRAND_GRAY,
     color: TEXT_ON_GRAY,
-    paddingVertical: 4,
+    paddingVertical: 6,
     paddingHorizontal: 8,
-    marginBottom: 8,
-    textTransform: "uppercase",
-  },
-  subtitle: {
-    fontSize: 9,
+    marginBottom: 12,
     textAlign: "center",
-    color: BRAND_GRAY,
-    marginBottom: 14,
+    textTransform: "uppercase",
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 8,
-    fontSize: 7.5,
+    marginBottom: 6,
+    fontSize: 9,
   },
   paragraph: {
-    fontSize: 9,
-    lineHeight: 1.45,
-    marginBottom: 10,
+    fontSize: 11,
+    lineHeight: 1.35,
+    marginBottom: 12,
     textAlign: "justify",
   },
   tableBox: {
     border: `1 solid ${BRAND_GRAY}`,
     overflow: "hidden",
-    marginBottom: 5,
+    marginBottom: 12,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: BRAND_GRAY,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
   },
   tableTitle: {
     backgroundColor: BRAND_RED,
     color: TEXT_ON_GRAY,
-    fontSize: 7.5,
+    fontSize: 10,
     fontWeight: 700,
     textAlign: "center",
     paddingVertical: 3,
     textTransform: "uppercase",
   },
   tableHeaderText: {
-    fontSize: 7.5,
+    fontSize: 9,
     color: TEXT_ON_GRAY,
     fontWeight: 700,
     textAlign: "center",
@@ -108,40 +86,39 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     borderBottom: `1 solid ${BORDER_LIGHT}`,
-    paddingVertical: 3,
+    paddingVertical: 4,
     paddingHorizontal: 6,
   },
   tableCell: {
-    fontSize: 7.5,
+    fontSize: 9,
     textAlign: "center",
   },
   termsIntro: {
-    fontSize: 8,
-    marginTop: 11,
-    marginBottom: 4,
+    fontSize: 11,
+    marginBottom: 6,
   },
   termRow: {
     flexDirection: "row",
     paddingLeft: 9,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   termBullet: {
     width: 10,
-    fontSize: 8,
+    fontSize: 11,
   },
   termText: {
     flex: 1,
-    fontSize: 7.5,
+    fontSize: 11,
     lineHeight: 1.35,
     textAlign: "justify",
   },
   signatureBlock: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 26,
+    marginTop: 38,
   },
   signatureColumn: {
-    width: "42%",
+    width: "44%",
     alignItems: "center",
   },
   signatureLine: {
@@ -150,17 +127,22 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   signatureLabel: {
-    fontSize: 6.8,
+    fontSize: 10,
+    lineHeight: 1.25,
     color: BRAND_GRAY,
     textAlign: "center",
   },
-  totals: { width: "38%", alignSelf: "flex-end", marginBottom: 5 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 2 },
-  totalLabel: { fontSize: 7, fontWeight: 700 },
-  totalValue: { fontSize: 7, fontWeight: 700 },
-  commitment: { fontSize: 7.5, lineHeight: 1.35, marginTop: 7 },
-  cityLine: { fontSize: 7.5, textAlign: "center", marginTop: 8 },
-  footerLogo: { position: "absolute", bottom: 20, left: 0, right: 0, alignItems: "center" },
+  totalRow: {
+    flexDirection: "row",
+    borderTop: `1 solid ${BORDER_LIGHT}`,
+    minHeight: 19,
+    alignItems: "center",
+  },
+  totalSpacer: { width: "74%" },
+  totalLabel: { width: "14%", paddingRight: 5, fontSize: 9, fontWeight: 700, textAlign: "right" },
+  totalValue: { width: "12%", paddingRight: 5, fontSize: 9, fontWeight: 700, textAlign: "right" },
+  commitment: { fontSize: 11, lineHeight: 1.35, marginTop: 7, textAlign: "justify" },
+  cityLine: { fontSize: 11, textAlign: "center", marginTop: 10 },
   colCodigo: { width: "14%" },
   colDesc: { width: "36%" },
   colCant: { width: "12%" },
@@ -171,18 +153,21 @@ const styles = StyleSheet.create({
 
 type Props = {
   carta: CartaWithRelations;
-  logoSrc?: string;
 };
 
-export default function CartaPDFDocument({ carta, logoSrc }: Props) {
+export default function CartaPDFDocument({ carta }: Props) {
   const sucursalNombre = carta.cr_sucursales?.nombre ?? "—";
   const codigoSucursal = carta.cr_sucursales?.codigo_sap ?? sucursalNombre;
+  const ciudadFirma = carta.cr_sucursales?.ciudad ?? sucursalNombre;
   const calculatedSubtotal = carta.cr_carta_items.reduce(
     (sum, item) => sum + item.cantidad * item.precio,
     0
   );
   const subtotal = Number(carta.subtotal) || calculatedSubtotal;
-  const iva = Number(carta.iva) || subtotal * 0.16;
+  const branchIvaPercentage = Number(carta.cr_sucursales?.iva_porcentaje) || 16;
+  const iva = Number(carta.iva) || subtotal * (branchIvaPercentage / 100);
+  const ivaPercentage =
+    subtotal > 0 ? Math.round((iva / subtotal) * 10_000) / 100 : branchIvaPercentage;
   const totalConIva = Number(carta.total) || subtotal + iva;
   const terms = carta.terminos_snapshot?.trim()
     ? carta.terminos_snapshot.split("\n").filter(Boolean)
@@ -226,18 +211,18 @@ export default function CartaPDFDocument({ carta, logoSrc }: Props) {
               </Text>
             </View>
           ))}
-        </View>
-
-        <View style={styles.totals}>
           <View style={styles.totalRow}>
+            <View style={styles.totalSpacer} />
             <Text style={styles.totalLabel}>SUBTOTAL</Text>
             <Text style={styles.totalValue}>{money(subtotal)}</Text>
           </View>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>IVA 16%</Text>
+            <View style={styles.totalSpacer} />
+            <Text style={styles.totalLabel}>IVA {ivaPercentage}%</Text>
             <Text style={styles.totalValue}>{money(iva)}</Text>
           </View>
           <View style={styles.totalRow}>
+            <View style={styles.totalSpacer} />
             <Text style={styles.totalLabel}>TOTAL</Text>
             <Text style={styles.totalValue}>{money(totalConIva)}</Text>
           </View>
@@ -258,24 +243,18 @@ export default function CartaPDFDocument({ carta, logoSrc }: Props) {
           Confirmo de leído el presente anexo y estando conforme de su contenido.
         </Text>
         <Text style={styles.cityLine}>
-          Lo firmo en la ciudad de {sucursalNombre} con fecha al {pdfDate(carta.created_at)}.
+          Lo firmo en la ciudad de {ciudadFirma} con fecha al {pdfDate(carta.created_at)}
         </Text>
         <View style={styles.signatureBlock}>
           <View style={styles.signatureColumn}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Nombre, puesto y firma de la persona que retira el material.</Text>
+            <Text style={styles.signatureLabel}>Nombre, puesto y firma de la persona que retira el material</Text>
           </View>
           <View style={styles.signatureColumn}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Nombre, puesto y firma de la persona que entrega el material.</Text>
+            <Text style={styles.signatureLabel}>Nombre, puesto y firma de la persona que entrega el material</Text>
           </View>
         </View>
-
-        {logoSrc ? (
-          <View style={styles.footerLogo} fixed>
-            <Image src={logoSrc} style={styles.headerLogo} />
-          </View>
-        ) : null}
       </Page>
     </Document>
   );

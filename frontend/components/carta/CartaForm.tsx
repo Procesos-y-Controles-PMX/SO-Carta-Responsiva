@@ -7,7 +7,13 @@ import { toast } from "sonner";
 import { FileText, MapPin, PackageOpen, Plus, Trash2, UserRound } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
-import { useAuth, userCanAccessSucursal } from "@/lib/auth";
+import {
+  canGenerateCartas,
+  canManageMasterData,
+  scopeSucursales,
+  userCanAccessSucursal,
+} from "@/lib/access";
+import { useAuth } from "@/lib/auth";
 import { listCatalogoBySucursal } from "@/lib/queries/catalogo";
 import { createCarta, updateCarta } from "@/lib/queries/cartas";
 import { listResponsablesBySucursal } from "@/lib/queries/responsables";
@@ -62,10 +68,7 @@ export default function CartaForm({ mode, initial }: Props) {
 
   useEffect(() => {
     listSucursales().then((rows) => {
-      const scoped =
-        user?.rol === "operador" && user.id_sucursal
-          ? rows.filter((s) => s.id === user.id_sucursal)
-          : rows;
+      const scoped = user ? scopeSucursales(user, rows) : [];
       setSucursales(scoped);
       if (!idSucursal && scoped[0]) setIdSucursal(scoped[0].id);
     });
@@ -87,7 +90,8 @@ export default function CartaForm({ mode, initial }: Props) {
   );
 
   const subtotal = validLines.reduce((sum, line) => sum + line.cantidad * line.precio, 0);
-  const iva = subtotal * 0.16;
+  const ivaPorcentaje = selectedSucursal?.iva_porcentaje ?? 16;
+  const iva = subtotal * (ivaPorcentaje / 100);
   const total = subtotal + iva;
 
   function addProductFromCatalog(item: CrCatalogoItem) {
@@ -132,12 +136,12 @@ export default function CartaForm({ mode, initial }: Props) {
 
   async function handleSubmit() {
     if (!user) return;
-    if (!idSucursal || !idResponsable) {
-      toast.error("Selecciona sucursal y responsable.");
+    if (!canGenerateCartas(user)) {
+      toast.error("Tu acceso es únicamente de consulta.");
       return;
     }
-    if (!userCanAccessSucursal(user, idSucursal)) {
-      toast.error("No tienes acceso a esta sucursal.");
+    if (!idSucursal || !idResponsable) {
+      toast.error("Selecciona sucursal y responsable.");
       return;
     }
     if (validLines.length === 0) {
@@ -154,6 +158,10 @@ export default function CartaForm({ mode, initial }: Props) {
       toast.error("Sucursal no válida.");
       return;
     }
+    if (!userCanAccessSucursal(user, selectedSucursal)) {
+      toast.error("No tienes acceso a esta sucursal.");
+      return;
+    }
 
     setSaving(true);
     const items: CartaLineInput[] = validLines.map(({ key: _k, ...line }) => line);
@@ -165,6 +173,7 @@ export default function CartaForm({ mode, initial }: Props) {
         nombre_responsable: responsable.nombre,
         id_usuario: user.id,
         prefijo_folio: selectedSucursal.prefijo_folio,
+        iva_porcentaje: ivaPorcentaje,
         items,
       });
       setSaving(false);
@@ -201,6 +210,7 @@ export default function CartaForm({ mode, initial }: Props) {
     const carta = await updateCarta(initial.id, {
       id_responsable: idResponsable,
       nombre_responsable: responsable.nombre,
+      iva_porcentaje: ivaPorcentaje,
       items,
     });
     setSaving(false);
@@ -210,6 +220,10 @@ export default function CartaForm({ mode, initial }: Props) {
     }
     toast.success("Carta actualizada.");
     router.push(`/cartas/${carta.id}`);
+  }
+
+  if (user && !canGenerateCartas(user)) {
+    return <p className="text-sm text-slate-500">Tu acceso es únicamente de consulta.</p>;
   }
 
   return (
@@ -243,7 +257,7 @@ export default function CartaForm({ mode, initial }: Props) {
             </span>
             <FilterSelect
               value={idSucursal}
-              disabled={mode === "edit" || (user?.rol === "operador" && !!user.id_sucursal)}
+              disabled={mode === "edit" || (user?.rol === "usuario" && !!user.id_sucursal)}
               icon={MapPin}
               searchable="auto"
               placeholder="Seleccionar sucursal..."
@@ -327,7 +341,7 @@ export default function CartaForm({ mode, initial }: Props) {
                 <PackageOpen className="h-8 w-8 text-slate-300" aria-hidden="true" />
                 <p className="mt-3 text-sm font-medium text-slate-700">No encontramos materiales</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {user?.rol === "admin" ? (
+                  {user && canManageMasterData(user) ? (
                     <Link href="/catalogo" className="font-semibold text-brand hover:underline">
                       Agregar un código al catálogo
                     </Link>
@@ -462,7 +476,7 @@ export default function CartaForm({ mode, initial }: Props) {
             <div className="ml-auto grid max-w-sm grid-cols-2 gap-x-8 gap-y-1 text-sm">
               <span className="text-slate-500">Subtotal</span>
               <span className="text-right font-medium text-slate-800">{money(subtotal)}</span>
-              <span className="text-slate-500">IVA 16%</span>
+              <span className="text-slate-500">IVA {ivaPorcentaje}%</span>
               <span className="text-right font-medium text-slate-800">{money(iva)}</span>
               <span className="border-t border-slate-300 pt-2 font-semibold text-slate-900">Total</span>
               <span className="border-t border-slate-300 pt-2 text-right text-lg font-bold text-slate-900">

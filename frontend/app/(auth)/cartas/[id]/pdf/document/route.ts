@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { userCanAccessSucursal } from "@/lib/access";
 import { CARTA_SELECT, type CartaWithRelations } from "@/lib/queries/cartas";
 import {
   cartaPdfDisposition,
@@ -34,10 +35,10 @@ export async function GET(request: Request, context: RouteContext) {
   if (!carta) {
     return NextResponse.json({ message: "Carta no encontrada." }, { status: 404 });
   }
-  if (
-    user.rol !== "admin" &&
-    (carta.id_usuario !== user.id || carta.id_sucursal !== user.id_sucursal)
-  ) {
+  if (!userCanAccessSucursal(user, {
+    id: carta.id_sucursal,
+    region: carta.cr_sucursales?.region ?? null,
+  })) {
     return NextResponse.json({ message: "Acceso denegado." }, { status: 403 });
   }
 

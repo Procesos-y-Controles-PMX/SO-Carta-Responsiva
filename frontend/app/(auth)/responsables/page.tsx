@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { MapPin, UserPlus } from "lucide-react";
 import FilterSelect from "@/components/common/FilterSelect";
 import PageHeader from "@/components/ui/PageHeader";
+import { canManageMasterData } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import {
   createResponsable,
@@ -29,7 +30,7 @@ export default function ResponsablesPage() {
   }
 
   useEffect(() => {
-    if (user?.rol !== "admin") return;
+    if (!user || !canManageMasterData(user)) return;
     listSucursales().then((data) => {
       setSucursales(data);
       if (data[0]) setIdSucursal(data[0].id);
@@ -37,7 +38,7 @@ export default function ResponsablesPage() {
     reload();
   }, [user]);
 
-  if (user?.rol !== "admin") {
+  if (!user || !canManageMasterData(user)) {
     return <p className="text-sm text-slate-500">Acceso restringido a administradores.</p>;
   }
 

@@ -6,6 +6,7 @@ import { MapPin, PackagePlus } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
 import PageHeader from "@/components/ui/PageHeader";
+import { canManageMasterData } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { createCatalogoItem, listCatalogoBySucursal } from "@/lib/queries/catalogo";
 import { listSucursales } from "@/lib/queries/sucursales";
@@ -25,7 +26,7 @@ export default function CatalogoPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.rol !== "admin") return;
+    if (!user || !canManageMasterData(user)) return;
     listSucursales().then((rows) => {
       setSucursales(rows);
       if (rows[0]) setIdSucursal(rows[0].id);
@@ -37,7 +38,7 @@ export default function CatalogoPage() {
     listCatalogoBySucursal(idSucursal, search, false).then(setItems);
   }, [idSucursal, search]);
 
-  if (user?.rol !== "admin") {
+  if (!user || !canManageMasterData(user)) {
     return <p className="text-sm text-slate-500">Acceso restringido a administradores.</p>;
   }
 

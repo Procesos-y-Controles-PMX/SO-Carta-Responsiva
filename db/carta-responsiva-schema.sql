@@ -10,6 +10,13 @@ create table if not exists cr_sucursales (
   codigo_sap text unique,
   prefijo_folio text not null,
   region text,
+  iva_porcentaje numeric(5, 2) not null default 16,
+  ciudad text,
+  direccion text,
+  estado text,
+  gerente_nombre text,
+  gerente_celular text,
+  gerente_email text,
   activo boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -19,8 +26,9 @@ create table if not exists cr_usuarios (
   email text not null unique,
   password_hash text,
   nombre_completo text,
-  rol text not null check (rol in ('admin', 'operador')),
+  rol text not null check (rol in ('usuario', 'administrador_zona', 'administrador_general')),
   id_sucursal uuid references cr_sucursales (id) on delete set null,
+  region text,
   activo boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -83,7 +91,20 @@ create index if not exists cr_responsables_sucursal_idx on cr_responsables (id_s
 
 -- Idempotent migration for databases created from an earlier draft.
 alter table cr_sucursales add column if not exists codigo_sap text;
+alter table cr_sucursales add column if not exists iva_porcentaje numeric(5, 2) not null default 16;
+alter table cr_sucursales add column if not exists ciudad text;
+alter table cr_sucursales add column if not exists direccion text;
+alter table cr_sucursales add column if not exists estado text;
+alter table cr_sucursales add column if not exists gerente_nombre text;
+alter table cr_sucursales add column if not exists gerente_celular text;
+alter table cr_sucursales add column if not exists gerente_email text;
 alter table cr_usuarios add column if not exists password_hash text;
+alter table cr_usuarios add column if not exists region text;
+alter table cr_usuarios drop constraint if exists cr_usuarios_rol_check;
+update cr_usuarios set rol = 'administrador_general' where rol = 'admin';
+update cr_usuarios set rol = 'usuario' where rol = 'operador';
+alter table cr_usuarios add constraint cr_usuarios_rol_check
+  check (rol in ('usuario', 'administrador_zona', 'administrador_general'));
 alter table cr_cartas add column if not exists terminos_snapshot text;
 alter table cr_cartas add column if not exists subtotal numeric(14, 2) not null default 0;
 alter table cr_cartas add column if not exists iva numeric(14, 2) not null default 0;
@@ -136,8 +157,8 @@ on conflict do nothing;
 
 insert into cr_usuarios (email, password_hash, nombre_completo, rol)
 values
-  ('admin@promexma.com', extensions.crypt('changeme', extensions.gen_salt('bf')), null, 'admin'),
-  ('operador.merida@promexma.com', extensions.crypt('changeme', extensions.gen_salt('bf')), null, 'admin')
+  ('admin@promexma.com', extensions.crypt('changeme', extensions.gen_salt('bf')), null, 'administrador_general'),
+  ('operador.merida@promexma.com', extensions.crypt('changeme', extensions.gen_salt('bf')), null, 'usuario')
 on conflict (email) do nothing;
 
 update cr_usuarios u

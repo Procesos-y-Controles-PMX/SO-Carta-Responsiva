@@ -31,13 +31,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "Token inválido." }, { status: 401 });
     }
 
-    const adminUser: CrUsuario = {
-      ...user,
-      rol: "admin",
-      nombre_completo: null,
-    };
-    const response = NextResponse.json({ ok: true, user: adminUser });
-    await attachServerSession(response, adminUser);
+    const response = NextResponse.json({ ok: true, user });
+    await attachServerSession(response, user);
     return response;
   } catch {
     return NextResponse.json(

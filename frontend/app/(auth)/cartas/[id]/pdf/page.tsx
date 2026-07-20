@@ -5,17 +5,21 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Download, ExternalLink, Pencil } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
+import { canEditCartas } from "@/lib/access";
+import { useAuth } from "@/lib/auth";
 import { getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
 import { cartaPdfFilename } from "@/lib/pdf/cartaPdf";
 
 export default function CartaPdfPreviewPage() {
   const params = useParams();
   const id = params.id as string;
+  const { user } = useAuth();
   const [carta, setCarta] = useState<CartaWithRelations | null>(null);
 
   useEffect(() => {
-    getCartaById(id).then(setCarta);
-  }, [id]);
+    if (!user) return;
+    getCartaById(id, user).then(setCarta);
+  }, [id, user]);
 
   if (!carta) {
     return <p className="text-sm text-slate-500">Cargando PDF...</p>;
@@ -32,10 +36,12 @@ export default function CartaPdfPreviewPage() {
         subtitle={`${carta.nombre_responsable} · ${carta.cr_sucursales?.nombre}`}
         actions={
           <>
-          <Link href={`/cartas/${id}`} className="btn-secondary gap-2">
-            <Pencil className="h-4 w-4" aria-hidden="true" />
-            Editar carta
-          </Link>
+          {user && canEditCartas(user) ? (
+            <Link href={`/cartas/${id}`} className="btn-secondary gap-2">
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+              Editar carta
+            </Link>
+          ) : null}
           <a href={`${pdfUrl}?download=1`} download={filename} className="btn-primary gap-2">
             <Download className="h-4 w-4" aria-hidden="true" />
             Descargar PDF

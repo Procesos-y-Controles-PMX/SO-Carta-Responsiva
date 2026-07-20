@@ -5,8 +5,15 @@ import type { CrUsuario } from "./types/db";
 
 const SESSION_KEY = "cr_session";
 
-function temporaryAdminUser(user: CrUsuario): CrUsuario {
-  return { ...user, rol: "admin", nombre_completo: null };
+function normalizeSessionUser(user: CrUsuario): CrUsuario {
+  const legacyRole = user.rol as string;
+  const rol =
+    legacyRole === "admin"
+      ? "administrador_general"
+      : legacyRole === "operador"
+        ? "usuario"
+        : user.rol;
+  return { ...user, rol, region: user.region ?? null };
 }
 
 function getSessionStore(): Storage | null {
@@ -52,7 +59,7 @@ export async function loginByEmailPassword(
       return { ok: false, message: "No se pudo guardar la sesión en el navegador." };
     }
     clearLegacySession();
-    const user = temporaryAdminUser(payload.user);
+    const user = normalizeSessionUser(payload.user);
     store.setItem(SESSION_KEY, JSON.stringify(user));
     return { ok: true, user };
   } catch {
@@ -62,7 +69,7 @@ export async function loginByEmailPassword(
 
 export function saveSessionUser(user: CrUsuario): void {
   clearLegacySession();
-  getSessionStore()?.setItem(SESSION_KEY, JSON.stringify(temporaryAdminUser(user)));
+  getSessionStore()?.setItem(SESSION_KEY, JSON.stringify(normalizeSessionUser(user)));
 }
 
 export async function logout(): Promise<void> {
@@ -84,9 +91,9 @@ export function getCurrentUser(): CrUsuario | null {
     const parsed = JSON.parse(raw) as CrUsuario & { password?: string };
     if (parsed.password !== undefined) {
       const { password: _p, ...user } = parsed;
-      return temporaryAdminUser(user as CrUsuario);
+      return normalizeSessionUser(user as CrUsuario);
     }
-    return temporaryAdminUser(parsed);
+    return normalizeSessionUser(parsed);
   } catch {
     return null;
   }
@@ -103,9 +110,4 @@ export function useAuth(): { user: CrUsuario | null; loading: boolean } {
   }, []);
 
   return { user, loading };
-}
-
-export function userCanAccessSucursal(user: CrUsuario, idSucursal: string): boolean {
-  if (user.rol === "admin") return true;
-  return user.id_sucursal === idSucursal;
 }

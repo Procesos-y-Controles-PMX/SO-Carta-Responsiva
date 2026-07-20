@@ -1,4 +1,5 @@
 import { MERCANCIA_ABORDO_TERMS } from "../carta/terms";
+import { isGeneralAdmin, normalizeRegion, userCanAccessSucursal } from "../access";
 import { generarFolio } from "../folio";
 import { supabase } from "../supabase";
 import type { CartaLineInput, CrCarta, CrCartaItem, CrUsuario } from "../types/db";
@@ -6,10 +7,14 @@ import { roundToDecimals } from "../utils";
 
 export type CartaWithRelations = CrCarta & {
   cr_sucursales: {
+    id: string;
     nombre: string;
     codigo_sap: string | null;
     prefijo_folio: string;
     region: string | null;
+    iva_porcentaje: number;
+    ciudad: string | null;
+    direccion: string | null;
   } | null;
   cr_usuarios: { email: string; nombre_completo: string | null } | null;
   cr_carta_items: CrCartaItem[];
@@ -17,7 +22,7 @@ export type CartaWithRelations = CrCarta & {
 
 export const CARTA_SELECT = `
   *,
-  cr_sucursales(nombre, codigo_sap, prefijo_folio, region),
+  cr_sucursales(id, nombre, codigo_sap, prefijo_folio, region, iva_porcentaje, ciudad, direccion),
   cr_usuarios(email, nombre_completo),
   cr_carta_items(*)
 `;
@@ -33,8 +38,21 @@ export async function listCartas(
     .select(CARTA_SELECT)
     .order("created_at", { ascending: false });
 
-  if (user.rol === "operador" && user.id_sucursal) {
-    query = query.eq("id_sucursal", user.id_sucursal);
+  if (!isGeneralAdmin(user)) {
+    if (user.rol === "usuario") {
+      if (!user.id_sucursal) return [];
+      query = query.eq("id_sucursal", user.id_sucursal);
+    } else {
+      const { data: branches } = await supabase
+        .from("cr_sucursales")
+        .select("id, region")
+        .eq("activo", true);
+      const branchIds = (branches ?? [])
+        .filter((branch) => normalizeRegion(branch.region) === normalizeRegion(user.region))
+        .map((branch) => branch.id);
+      if (branchIds.length === 0) return [];
+      query = query.in("id_sucursal", branchIds);
+    }
   } else if (options?.idSucursal) {
     query = query.eq("id_sucursal", options.idSucursal);
   }
@@ -46,10 +64,24 @@ export async function listCartas(
   return (data as CartaWithRelations[] | null) ?? [];
 }
 
-export async function getCartaById(id: string): Promise<CartaWithRelations | null> {
+export async function getCartaById(
+  id: string,
+  user?: CrUsuario,
+): Promise<CartaWithRelations | null> {
   if (!supabase) return null;
   const { data } = await supabase.from("cr_cartas").select(CARTA_SELECT).eq("id", id).single();
-  return (data as CartaWithRelations | null) ?? null;
+  const carta = (data as CartaWithRelations | null) ?? null;
+  if (
+    !carta ||
+    (user &&
+      !userCanAccessSucursal(user, {
+        id: carta.id_sucursal,
+        region: carta.cr_sucursales?.region ?? null,
+      }))
+  ) {
+    return null;
+  }
+  return carta;
 }
 
 export type CreateCartaPayload = {
@@ -58,12 +90,14 @@ export type CreateCartaPayload = {
   nombre_responsable: string;
   id_usuario: string;
   prefijo_folio: string;
+  iva_porcentaje: number;
   items: CartaLineInput[];
 };
 
 export type UpdateCartaPayload = {
   id_responsable: string | null;
   nombre_responsable: string;
+  iva_porcentaje: number;
   items: CartaLineInput[];
 };
 
@@ -90,7 +124,7 @@ export async function createCarta(payload: CreateCartaPayload): Promise<CartaWit
   const subtotal = roundToDecimals(
     payload.items.reduce((sum, item) => sum + item.cantidad * item.precio, 0)
   );
-  const iva = roundToDecimals(subtotal * 0.16);
+  const iva = roundToDecimals(subtotal * (payload.iva_porcentaje / 100));
   const total = roundToDecimals(subtotal + iva);
 
   const { data: carta, error } = await supabase
@@ -133,7 +167,7 @@ export async function updateCarta(
   const subtotal = roundToDecimals(
     payload.items.reduce((sum, item) => sum + item.cantidad * item.precio, 0)
   );
-  const iva = roundToDecimals(subtotal * 0.16);
+  const iva = roundToDecimals(subtotal * (payload.iva_porcentaje / 100));
   const total = roundToDecimals(subtotal + iva);
 
   const { error: updateError } = await supabase

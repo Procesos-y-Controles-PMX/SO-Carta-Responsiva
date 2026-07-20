@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ClipboardList, FilePlus2, FileText } from "lucide-react";
+import { canEditCartas, canGenerateCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { listCartas, type CartaWithRelations } from "@/lib/queries/cartas";
 import { formatDate } from "@/lib/utils";
@@ -11,6 +12,8 @@ export default function CartasHistorialPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<CartaWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
+  const canGenerate = user ? canGenerateCartas(user) : false;
+  const canEdit = user ? canEditCartas(user) : false;
 
   useEffect(() => {
     if (!user) return;
@@ -39,6 +42,7 @@ export default function CartasHistorialPage() {
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
+        {canGenerate ? (
         <Link
           href="/cartas/nueva"
           className="group card-panel flex items-center gap-4 p-5 transition-all hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md"
@@ -55,6 +59,7 @@ export default function CartasHistorialPage() {
           </div>
           <ArrowRight className="h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand" />
         </Link>
+        ) : null}
 
         <a
           href="#historial"
@@ -106,8 +111,10 @@ export default function CartasHistorialPage() {
                       {row.cr_carta_items.length} productos
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Link href={`/cartas/${row.id}`} className="btn-secondary min-h-11">Editar</Link>
+                  <div className={`mt-3 grid gap-2 ${canEdit ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {canEdit ? (
+                      <Link href={`/cartas/${row.id}`} className="btn-secondary min-h-11">Editar</Link>
+                    ) : null}
                     <Link href={`/cartas/${row.id}/pdf`} className="btn-primary min-h-11">Ver PDF</Link>
                   </div>
                 </article>
@@ -140,12 +147,14 @@ export default function CartasHistorialPage() {
                       >
                         PDF
                       </Link>
-                      <Link
-                        href={`/cartas/${row.id}`}
-                        className="text-xs font-semibold text-slate-600 hover:underline"
-                      >
-                        Editar
-                      </Link>
+                      {canEdit ? (
+                        <Link
+                          href={`/cartas/${row.id}`}
+                          className="text-xs font-semibold text-slate-600 hover:underline"
+                        >
+                          Editar
+                        </Link>
+                      ) : null}
                     </td>
                   </tr>
                 ))}

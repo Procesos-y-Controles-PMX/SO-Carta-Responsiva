@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
+import { canViewCompliance } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import {
   getComplianceReport,
@@ -36,9 +37,9 @@ export default function CumplimientoPage() {
   }, [month]);
 
   useEffect(() => {
-    if (user?.rol !== "admin") return;
+    if (!user || !canViewCompliance(user)) return;
     setLoading(true);
-    getComplianceReport(range.from, range.to).then((data) => {
+    getComplianceReport(user, range.from, range.to).then((data) => {
       setRows(data);
       setLoading(false);
     });
@@ -48,7 +49,7 @@ export default function CumplimientoPage() {
   const sinResponsable = responsablesSinCarta(rows);
   const totalCartas = rows.reduce((sum, r) => sum + r.cartasSucursalEnPeriodo, 0);
 
-  if (user?.rol !== "admin") {
+  if (!user || !canViewCompliance(user)) {
     return <p className="text-sm text-slate-500">Acceso restringido a administradores.</p>;
   }
 

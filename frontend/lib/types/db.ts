@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "operador";
+export type UserRole = "usuario" | "administrador_zona" | "administrador_general";
 
 export type CrUsuario = {
   id: string;
@@ -6,6 +6,7 @@ export type CrUsuario = {
   nombre_completo: string | null;
   rol: UserRole;
   id_sucursal: string | null;
+  region: string | null;
   activo: boolean;
   created_at: string;
 };
@@ -16,6 +17,13 @@ export type CrSucursal = {
   codigo_sap: string | null;
   prefijo_folio: string;
   region: string | null;
+  iva_porcentaje: number;
+  ciudad: string | null;
+  direccion: string | null;
+  estado: string | null;
+  gerente_nombre: string | null;
+  gerente_celular: string | null;
+  gerente_email: string | null;
   activo: boolean;
   created_at: string;
 };

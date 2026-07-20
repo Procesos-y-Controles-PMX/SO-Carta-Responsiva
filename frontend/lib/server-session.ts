@@ -52,9 +52,18 @@ export async function getServerSessionUser(): Promise<CrUsuario | null> {
       issuer: SESSION_ISSUER,
     });
     const user = payload.user as CrUsuario | undefined;
-    return user?.id && user.email
-      ? { ...user, rol: "admin", nombre_completo: null }
-      : null;
+    if (!user?.id || !user.email) return null;
+    const legacyRole = user.rol as string;
+    return {
+      ...user,
+      rol:
+        legacyRole === "admin"
+          ? "administrador_general"
+          : legacyRole === "operador"
+            ? "usuario"
+            : user.rol,
+      region: user.region ?? null,
+    };
   } catch {
     return null;
   }

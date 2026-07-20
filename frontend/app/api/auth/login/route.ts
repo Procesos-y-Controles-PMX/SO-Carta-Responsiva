@@ -52,25 +52,41 @@ export async function POST(request: Request) {
       );
     }
 
-    let data: LoginCandidate | undefined;
-    for (const row of (candidates ?? []) as LoginCandidate[]) {
-      const hashMatches =
-        typeof row.password_hash === "string" &&
-        (await compare(password, row.password_hash));
-      const legacyMatches =
-        !row.password_hash &&
-        process.env.NODE_ENV !== "production" &&
-        String(row.password ?? "").trim() === password;
-      if (row.activo === true && (hashMatches || legacyMatches)) {
-        data = row;
-        break;
-      }
-    }
-
-    if (!data) {
+    const accessUser = ((candidates ?? []) as LoginCandidate[]).find(
+      (candidate) => candidate.activo === true,
+    );
+    if (!accessUser) {
       return NextResponse.json(
         { ok: false, message: "Credenciales inválidas o usuario inactivo." },
         { status: 401 }
+      );
+    }
+
+    const { data: sharedCandidates, error: sharedError } = await supabase
+      .from("ctz_usuarios")
+      .select("email, password, activo")
+      .ilike("email", email);
+    if (sharedError) {
+      console.error("Shared login query error:", sharedError.message);
+    }
+
+    const sharedCredentialsMatch = (sharedCandidates ?? []).some(
+      (candidate) =>
+        candidate.activo === true &&
+        String(candidate.password ?? "").trim() === password,
+    );
+    const cartaHashMatches =
+      typeof accessUser.password_hash === "string" &&
+      (await compare(password, accessUser.password_hash));
+    const legacyCartaMatch =
+      !accessUser.password_hash &&
+      process.env.NODE_ENV !== "production" &&
+      String(accessUser.password ?? "").trim() === password;
+
+    if (!sharedCredentialsMatch && !cartaHashMatches && !legacyCartaMatch) {
+      return NextResponse.json(
+        { ok: false, message: "Credenciales inválidas o usuario inactivo." },
+        { status: 401 },
       );
     }
 
@@ -78,14 +94,10 @@ export async function POST(request: Request) {
       password_hash: _passwordHash,
       password: _legacyPassword,
       ...user
-    } = data;
-    const adminUser = {
-      ...(user as CrUsuario),
-      rol: "admin" as const,
-      nombre_completo: null,
-    };
-    const response = NextResponse.json({ ok: true, user: adminUser });
-    await attachServerSession(response, adminUser);
+    } = accessUser;
+    const sessionUser = user as CrUsuario;
+    const response = NextResponse.json({ ok: true, user: sessionUser });
+    await attachServerSession(response, sessionUser);
     return response;
   } catch (err) {
     console.error("Login route error:", err);

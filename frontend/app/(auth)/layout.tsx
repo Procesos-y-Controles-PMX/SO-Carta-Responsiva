@@ -16,14 +16,16 @@ import {
 import AppCanvasMouseBackdrop from "@/components/common/AppCanvasMouseBackdrop";
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import { ROLE_LABELS } from "@/lib/access";
 import { getCurrentUser, logout, useAuth } from "@/lib/auth";
+import type { UserRole } from "@/lib/types/db";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
   href: string;
   icon: ReactNode;
-  roles?: Array<"admin" | "operador">;
+  roles?: UserRole[];
 }
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -35,10 +37,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const navItems: NavItem[] = useMemo(
     () => [
       { label: "Historial", href: "/cartas", icon: <FileClock className="h-[18px] w-[18px]" /> },
-      { label: "Nueva carta", href: "/cartas/nueva", icon: <FilePlus2 className="h-[18px] w-[18px]" /> },
-      { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["admin"] },
-      { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" />, roles: ["admin"] },
-      { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" />, roles: ["admin"] },
+      { label: "Nueva carta", href: "/cartas/nueva", icon: <FilePlus2 className="h-[18px] w-[18px]" />, roles: ["usuario", "administrador_general"] },
+      { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
+      { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
+      { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" />, roles: ["administrador_zona", "administrador_general"] },
     ],
     []
   );
@@ -67,7 +69,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     router.replace("/login");
   }
 
-  const initials = "AD";
+  const displayName = user.nombre_completo?.trim() || user.email;
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toLocaleUpperCase("es-MX"))
+    .join("");
+  const roleLabel = ROLE_LABELS[user.rol];
 
   return (
     <div className="min-h-screen app-canvas">
@@ -124,8 +132,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {!sidebarCollapsed ? (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-slate-200">Administrador</p>
-                  <p className="text-[10px] text-slate-500">Acceso completo</p>
+                  <p className="truncate text-xs font-semibold text-slate-200">{displayName}</p>
+                  <p className="text-[10px] text-slate-500">{roleLabel}</p>
                 </div>
                 <button type="button" onClick={handleLogout} className="rounded-sm p-1.5 text-slate-500 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión">
                   <LogOut className="h-4 w-4" />
@@ -145,7 +153,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 Carta Responsiva
               </h1>
               <p className="truncate text-xs text-slate-500 lg:text-sm">
-                Administrador
+                {roleLabel}
               </p>
             </div>
             <button
