@@ -1,6 +1,6 @@
 import { pdf, renderToBuffer } from "@react-pdf/renderer";
 import CartaPDFDocument from "./CartaPDFDocument";
-import type { CartaWithRelations } from "@/lib/queries/cartas";
+import type { CartaWithRelations } from "@/lib/server/queries-types";
 
 export async function renderCartaPdfBuffer(
   carta: CartaWithRelations,

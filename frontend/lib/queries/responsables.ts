@@ -1,51 +1,38 @@
-import { supabase } from "../supabase";
-import type { CrResponsable } from "../types/db";
+import { apiFetch } from "@/lib/api/client";
+import type { CrResponsable } from "@/lib/types/db";
+
+export type ResponsableRow = CrResponsable & { cr_sucursales: { nombre: string } | null };
 
 export async function listResponsablesBySucursal(
   idSucursal: string,
-  activoOnly = true
+  _activoOnly = true,
 ): Promise<CrResponsable[]> {
-  if (!supabase) return [];
-  let query = supabase
-    .from("cr_responsables")
-    .select("*")
-    .eq("id_sucursal", idSucursal)
-    .order("nombre");
-  if (activoOnly) query = query.eq("activo", true);
-  const { data } = await query;
-  return (data as CrResponsable[] | null) ?? [];
+  const result = await apiFetch<CrResponsable[]>(
+    `/api/responsables?sucursal=${encodeURIComponent(idSucursal)}`,
+  );
+  return result.ok ? result.data : [];
 }
 
-export async function listAllResponsables(): Promise<
-  (CrResponsable & { cr_sucursales: { nombre: string } | null })[]
-> {
-  if (!supabase) return [];
-  const { data } = await supabase
-    .from("cr_responsables")
-    .select("*, cr_sucursales(nombre)")
-    .order("nombre");
-  return (data as (CrResponsable & { cr_sucursales: { nombre: string } | null })[] | null) ?? [];
+export async function listAllResponsables(): Promise<ResponsableRow[]> {
+  const result = await apiFetch<ResponsableRow[]>("/api/responsables?all=1");
+  return result.ok ? result.data : [];
 }
 
 export async function createResponsable(
   idSucursal: string,
-  nombre: string
+  nombre: string,
 ): Promise<CrResponsable | null> {
-  if (!supabase) return null;
-  const { data, error } = await supabase
-    .from("cr_responsables")
-    .insert({ id_sucursal: idSucursal, nombre: nombre.trim(), activo: true })
-    .select("*")
-    .single();
-  if (error) {
-    console.error("createResponsable:", error.message);
-    return null;
-  }
-  return data as CrResponsable;
+  const result = await apiFetch<CrResponsable>("/api/responsables", {
+    method: "POST",
+    body: JSON.stringify({ id_sucursal: idSucursal, nombre }),
+  });
+  return result.ok ? result.data : null;
 }
 
 export async function toggleResponsableActivo(id: string, activo: boolean): Promise<boolean> {
-  if (!supabase) return false;
-  const { error } = await supabase.from("cr_responsables").update({ activo }).eq("id", id);
-  return !error;
+  const result = await apiFetch<unknown>("/api/responsables", {
+    method: "PATCH",
+    body: JSON.stringify({ id, activo }),
+  });
+  return result.ok;
 }

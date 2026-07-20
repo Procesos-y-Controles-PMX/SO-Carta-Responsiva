@@ -7,12 +7,7 @@ import { toast } from "sonner";
 import { FileText, MapPin, PackageOpen, Plus, Trash2, UserRound } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
-import {
-  canGenerateCartas,
-  canManageMasterData,
-  scopeSucursales,
-  userCanAccessSucursal,
-} from "@/lib/access";
+import { canGenerateCartas, canManageMasterData, userCanAccessSucursal } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { listCatalogoBySucursal } from "@/lib/queries/catalogo";
 import { createCarta, updateCarta } from "@/lib/queries/cartas";
@@ -67,10 +62,10 @@ export default function CartaForm({ mode, initial }: Props) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!user) return;
     listSucursales().then((rows) => {
-      const scoped = user ? scopeSucursales(user, rows) : [];
-      setSucursales(scoped);
-      if (!idSucursal && scoped[0]) setIdSucursal(scoped[0].id);
+      setSucursales(rows);
+      if (!idSucursal && rows[0]) setIdSucursal(rows[0].id);
     });
   }, [user, idSucursal]);
 
@@ -171,9 +166,6 @@ export default function CartaForm({ mode, initial }: Props) {
         id_sucursal: idSucursal,
         id_responsable: idResponsable,
         nombre_responsable: responsable.nombre,
-        id_usuario: user.id,
-        prefijo_folio: selectedSucursal.prefijo_folio,
-        iva_porcentaje: ivaPorcentaje,
         items,
       });
       setSaving(false);
@@ -210,7 +202,6 @@ export default function CartaForm({ mode, initial }: Props) {
     const carta = await updateCarta(initial.id, {
       id_responsable: idResponsable,
       nombre_responsable: responsable.nombre,
-      iva_porcentaje: ivaPorcentaje,
       items,
     });
     setSaving(false);

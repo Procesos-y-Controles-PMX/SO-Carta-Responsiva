@@ -105,8 +105,35 @@ export function useAuth(): { user: CrUsuario | null; loading: boolean } {
 
   useEffect(() => {
     clearLegacySession();
-    setUser(getCurrentUser());
-    setLoading(false);
+    const local = getCurrentUser();
+    if (local) setUser(local);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+        const payload = (await response.json()) as {
+          ok?: boolean;
+          user?: CrUsuario;
+        };
+        if (cancelled) return;
+        if (response.ok && payload.ok && payload.user) {
+          const synced = normalizeSessionUser(payload.user);
+          saveSessionUser(synced);
+          setUser(synced);
+        } else if (!local) {
+          setUser(null);
+        }
+      } catch {
+        if (!cancelled && !local) setUser(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { user, loading };

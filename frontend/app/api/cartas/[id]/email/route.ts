@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import { userCanAccessSucursal } from "@/lib/access";
 import { cartaPdfFilename, renderCartaPdfBuffer } from "@/lib/pdf/cartaPdf";
-import type { CartaWithRelations } from "@/lib/queries/cartas";
 import { getServerSessionUser } from "@/lib/server-session";
+import { CARTA_SELECT, type CartaWithRelations } from "@/lib/server/queries";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-const CARTA_SELECT = `
-  *,
-  cr_sucursales(id, nombre, codigo_sap, prefijo_folio, region, iva_porcentaje, ciudad, direccion),
-  cr_usuarios(email, nombre_completo),
-  cr_carta_items(*)
-`;
 
 export async function POST(request: Request, context: RouteContext) {
   const user = await getServerSessionUser();

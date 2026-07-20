@@ -6,7 +6,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import { CARTA_INTRO_TEMPLATE, MERCANCIA_ABORDO_POINTS } from "@/lib/carta/terms";
-import type { CartaWithRelations } from "@/lib/queries/cartas";
+import type { CartaWithRelations } from "@/lib/server/queries-types";
 import { formatQuantity, money } from "@/lib/utils";
 
 const BRAND_RED = "#DB2C27";

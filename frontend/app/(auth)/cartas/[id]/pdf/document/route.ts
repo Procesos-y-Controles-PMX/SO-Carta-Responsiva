@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { userCanAccessSucursal } from "@/lib/access";
-import { CARTA_SELECT, type CartaWithRelations } from "@/lib/queries/cartas";
 import {
   cartaPdfDisposition,
   cartaPdfFilename,
   renderCartaPdfBuffer,
 } from "@/lib/pdf/cartaPdf";
 import { getServerSessionUser } from "@/lib/server-session";
+import { CARTA_SELECT, type CartaWithRelations } from "@/lib/server/queries";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -25,20 +25,18 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const { data } = await supabase
-    .from("cr_cartas")
-    .select(CARTA_SELECT)
-    .eq("id", id)
-    .single();
+  const { data } = await supabase.from("cr_cartas").select(CARTA_SELECT).eq("id", id).single();
   const carta = data as CartaWithRelations | null;
 
   if (!carta) {
     return NextResponse.json({ message: "Carta no encontrada." }, { status: 404 });
   }
-  if (!userCanAccessSucursal(user, {
-    id: carta.id_sucursal,
-    region: carta.cr_sucursales?.region ?? null,
-  })) {
+  if (
+    !userCanAccessSucursal(user, {
+      id: carta.id_sucursal,
+      region: carta.cr_sucursales?.region ?? null,
+    })
+  ) {
     return NextResponse.json({ message: "Acceso denegado." }, { status: 403 });
   }
 
