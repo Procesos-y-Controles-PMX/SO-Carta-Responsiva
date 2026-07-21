@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Download, ExternalLink, Pencil } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
+import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/magicui/terminal";
 import { canEditCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
@@ -22,7 +23,27 @@ export default function CartaPdfPreviewPage() {
   }, [id, user]);
 
   if (!carta) {
-    return <p className="text-sm text-slate-500">Cargando PDF...</p>;
+    return (
+      <div className="mx-auto max-w-lg py-8">
+        <Terminal className="mx-auto">
+          <TypingAnimation className="text-emerald-400">
+            {"> Generando carta responsiva…"}
+          </TypingAnimation>
+          <AnimatedSpan className="text-slate-300">
+            Cargando datos del responsable
+          </AnimatedSpan>
+          <AnimatedSpan className="text-slate-300">
+            Componiendo documento PDF
+          </AnimatedSpan>
+          <AnimatedSpan className="text-slate-300">
+            Aplicando formato Promexma
+          </AnimatedSpan>
+          <TypingAnimation className="text-slate-500">
+            Preparando vista previa…
+          </TypingAnimation>
+        </Terminal>
+      </div>
+    );
   }
 
   const pdfUrl = `/cartas/${id}/pdf/document`;
