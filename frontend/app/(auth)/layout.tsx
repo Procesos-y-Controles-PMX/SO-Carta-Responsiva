@@ -153,10 +153,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             height={48}
             squares={[30, 18]}
             className={cn(
-              "pointer-events-auto absolute inset-x-0 inset-y-[-30%] h-[160%] w-full border-0 skew-y-6",
+              "absolute inset-x-0 inset-y-[-30%] h-[160%] w-full border-0 skew-y-6",
               "[mask-image:radial-gradient(1100px_circle_at_50%_-5%,white,transparent)]",
             )}
-            squaresClassName="stroke-slate-200/60 hover:fill-brand/10"
+            squaresClassName="stroke-slate-300/80"
           />
         </div>
         <header className="app-safe-x sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 py-3 backdrop-blur-sm lg:py-4">
