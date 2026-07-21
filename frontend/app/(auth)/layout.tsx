@@ -153,7 +153,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             height={48}
             squares={[32, 20]}
             skewY={6}
-            className="absolute inset-0 [mask-image:radial-gradient(95%_85%_at_50%_35%,white,transparent)]"
+            className="absolute inset-0 [mask-image:radial-gradient(120%_95%_at_50%_20%,white,transparent)]"
             squaresClassName="stroke-slate-300/80"
           />
         </div>
