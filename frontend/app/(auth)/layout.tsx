@@ -1,5 +1,7 @@
 "use client";
 
+
+import { InteractiveGridPattern } from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -13,7 +15,7 @@ import {
   LogOut,
   PanelLeftClose,
 } from "lucide-react";
-import { InteractiveGridPattern } from "@/components/magicui/interactive-grid-pattern";
+
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ROLE_LABELS } from "@/lib/access";

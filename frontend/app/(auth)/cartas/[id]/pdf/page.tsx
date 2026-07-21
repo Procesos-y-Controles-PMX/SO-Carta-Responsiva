@@ -1,11 +1,13 @@
 "use client";
 
+
+import { Terminal, TypingAnimation, AnimatedSpan } from "@promexma/ui";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Download, ExternalLink, Pencil } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
-import { Terminal, TypingAnimation, AnimatedSpan } from "@/components/magicui/terminal";
+
 import { canEditCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
