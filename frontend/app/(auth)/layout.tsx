@@ -147,16 +147,18 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={cn("relative min-h-screen transition-all duration-300 lg:ml-[250px]", sidebarCollapsed && "lg:ml-[72px]")}>
-        <InteractiveGridPattern
-          width={48}
-          height={48}
-          squares={[30, 18]}
-          className={cn(
-            "absolute inset-x-0 inset-y-[-30%] z-0 h-[160%] w-full border-0 skew-y-6",
-            "[mask-image:radial-gradient(1100px_circle_at_50%_-5%,white,transparent)]",
-          )}
-          squaresClassName="stroke-slate-200/60 hover:fill-brand/10"
-        />
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
+          <InteractiveGridPattern
+            width={48}
+            height={48}
+            squares={[30, 18]}
+            className={cn(
+              "pointer-events-auto absolute inset-x-0 inset-y-[-30%] h-[160%] w-full border-0 skew-y-6",
+              "[mask-image:radial-gradient(1100px_circle_at_50%_-5%,white,transparent)]",
+            )}
+            squaresClassName="stroke-slate-200/60 hover:fill-brand/10"
+          />
+        </div>
         <header className="app-safe-x sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 py-3 backdrop-blur-sm lg:py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
