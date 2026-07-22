@@ -28,3 +28,20 @@ export async function createCatalogoItem(payload: {
   });
   return result.ok ? result.data : null;
 }
+
+export async function updateCatalogoItem(
+  id: string,
+  payload: {
+    codigo: string;
+    descripcion: string;
+    unidad_medida: string | null;
+    precio: number;
+    activo: boolean;
+  },
+): Promise<CrCatalogoItem | null> {
+  const result = await apiFetch<CrCatalogoItem>("/api/catalogo", {
+    method: "PATCH",
+    body: JSON.stringify({ id, ...payload }),
+  });
+  return result.ok ? result.data : null;
+}

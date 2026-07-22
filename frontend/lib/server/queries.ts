@@ -159,6 +159,36 @@ export async function createCatalogoItem(
   return data as CrCatalogoItem;
 }
 
+export async function updateCatalogoItem(
+  supabase: SupabaseClient,
+  id: string,
+  payload: {
+    codigo: string;
+    descripcion: string;
+    unidad_medida: string | null;
+    precio: number;
+    activo: boolean;
+  },
+): Promise<CrCatalogoItem | null> {
+  const { data, error } = await supabase
+    .from("cr_catalogo")
+    .update({
+      codigo: payload.codigo.trim().toUpperCase(),
+      descripcion: payload.descripcion.trim(),
+      unidad_medida: payload.unidad_medida,
+      precio: payload.precio,
+      activo: payload.activo,
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) {
+    console.error("updateCatalogoItem:", error.message);
+    return null;
+  }
+  return data as CrCatalogoItem;
+}
+
 export async function listCartas(
   supabase: SupabaseClient,
   user: CrUsuario,

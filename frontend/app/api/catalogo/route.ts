@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { canManageMasterData, userCanAccessSucursal } from "@/lib/access";
 import { badRequest, forbidden, requireAuth } from "@/lib/api/require-auth";
 import {
+  isAllowedUnidadMedida,
+  normalizeUnidadMedida,
+} from "@/lib/catalogoUnits";
+import {
   createCatalogoItem,
   getSucursalById,
   listCatalogoBySucursal,
+  updateCatalogoItem,
 } from "@/lib/server/queries";
 
 export async function GET(request: Request) {
@@ -41,11 +46,16 @@ export async function POST(request: Request) {
     return badRequest("Completa todos los campos del catálogo.");
   }
 
+  const unidad = normalizeUnidadMedida(body.unidad_medida);
+  if (!isAllowedUnidadMedida(unidad)) {
+    return badRequest("Unidad de medida no válida.");
+  }
+
   const created = await createCatalogoItem(auth.ctx.supabase, {
     id_sucursal: body.id_sucursal,
     codigo: body.codigo,
     descripcion: body.descripcion,
-    unidad_medida: body.unidad_medida ?? null,
+    unidad_medida: unidad,
     precio: Number(body.precio),
   });
   if (!created) {
@@ -55,4 +65,47 @@ export async function POST(request: Request) {
     );
   }
   return NextResponse.json({ ok: true, data: created });
+}
+
+export async function PATCH(request: Request) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
+  if (!canManageMasterData(auth.ctx.user)) return forbidden();
+
+  const body = (await request.json()) as {
+    id?: string;
+    codigo?: string;
+    descripcion?: string;
+    unidad_medida?: string | null;
+    precio?: number;
+    activo?: boolean;
+  };
+
+  if (
+    !body.id ||
+    !body.codigo?.trim() ||
+    !body.descripcion?.trim() ||
+    body.precio == null ||
+    typeof body.activo !== "boolean"
+  ) {
+    return badRequest("id, código, descripción, precio y activo son requeridos.");
+  }
+
+  // Allow legacy U.M. codes already stored; new picks still come from the UI list.
+  const unidad = normalizeUnidadMedida(body.unidad_medida);
+
+  const updated = await updateCatalogoItem(auth.ctx.supabase, body.id, {
+    codigo: body.codigo,
+    descripcion: body.descripcion,
+    unidad_medida: unidad,
+    precio: Number(body.precio),
+    activo: body.activo,
+  });
+  if (!updated) {
+    return NextResponse.json(
+      { ok: false, message: "No se pudo actualizar el producto (¿código duplicado?)." },
+      { status: 500 },
+    );
+  }
+  return NextResponse.json({ ok: true, data: updated });
 }
