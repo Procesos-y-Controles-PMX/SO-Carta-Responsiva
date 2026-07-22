@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowRight, FilePlus2, FileText } from "lucide-react";
-import { canDeleteCartas, canEditCartas, canGenerateCartas } from "@/lib/access";
+import { canDeleteCartas, canGenerateCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
-import { deleteCarta, listCartas, type CartaWithRelations } from "@/lib/queries/cartas";
+import { deleteCarta, listCartas, type CartaWithRelations, generadoPorLabel } from "@/lib/queries/cartas";
 import { formatDate } from "@/lib/utils";
 
 export default function CartasHistorialPage() {
@@ -15,7 +15,6 @@ export default function CartasHistorialPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const canGenerate = user ? canGenerateCartas(user) : false;
-  const canEdit = user ? canEditCartas(user) : false;
   const canDelete = user ? canDeleteCartas(user) : false;
 
   useEffect(() => {
@@ -102,7 +101,7 @@ export default function CartasHistorialPage() {
           <>
             <div className="divide-y divide-slate-100 md:hidden">
               {rows.map((row) => {
-                const actionCols = 1 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0);
+                const actionCols = 2 + (canDelete ? 1 : 0);
                 return (
                 <article key={row.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -110,6 +109,10 @@ export default function CartasHistorialPage() {
                       <p className="truncate font-mono text-[11px] font-semibold text-brand">{row.folio}</p>
                       <p className="mt-1 text-sm font-semibold text-slate-800">{row.nombre_responsable}</p>
                       <p className="text-xs text-slate-500">{row.cr_sucursales?.nombre ?? "Sin sucursal"} · {formatDate(row.created_at)}</p>
+                      <p className="mt-1.5 text-[11px] text-slate-500">
+                        <span className="font-semibold text-slate-600">Generado por:</span>{" "}
+                        {generadoPorLabel(row)}
+                      </p>
                     </div>
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">
                       {row.cr_carta_items.length} productos
@@ -117,12 +120,10 @@ export default function CartasHistorialPage() {
                   </div>
                   <div
                     className={`mt-3 grid gap-2 ${
-                      actionCols >= 3 ? "grid-cols-1 sm:grid-cols-3" : actionCols === 2 ? "grid-cols-2" : "grid-cols-1"
+                      actionCols >= 3 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2"
                     }`}
                   >
-                    {canEdit ? (
-                      <Link href={`/cartas/${row.id}`} className="btn-secondary min-h-11">Editar</Link>
-                    ) : null}
+                    <Link href={`/cartas/${row.id}`} className="btn-secondary min-h-11">Detalles</Link>
                     <Link href={`/cartas/${row.id}/pdf`} className="btn-primary min-h-11">Ver PDF</Link>
                     {canDelete ? (
                       <button
@@ -146,6 +147,7 @@ export default function CartasHistorialPage() {
                   <th className="px-4 py-3">Folio</th>
                   <th className="px-4 py-3">Sucursal</th>
                   <th className="px-4 py-3">Responsable</th>
+                  <th className="px-4 py-3">Generado por</th>
                   <th className="px-4 py-3">Fecha</th>
                   <th className="px-4 py-3">Productos</th>
                   <th className="px-4 py-3" />
@@ -157,6 +159,7 @@ export default function CartasHistorialPage() {
                     <td className="px-4 py-3 font-mono text-xs">{row.folio}</td>
                     <td className="px-4 py-3">{row.cr_sucursales?.nombre ?? "—"}</td>
                     <td className="px-4 py-3">{row.nombre_responsable}</td>
+                    <td className="px-4 py-3 text-slate-600">{generadoPorLabel(row)}</td>
                     <td className="px-4 py-3">{formatDate(row.created_at)}</td>
                     <td className="px-4 py-3">{row.cr_carta_items.length}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -166,14 +169,12 @@ export default function CartasHistorialPage() {
                       >
                         PDF
                       </Link>
-                      {canEdit ? (
-                        <Link
-                          href={`/cartas/${row.id}`}
-                          className="mr-3 text-xs font-semibold text-slate-600 hover:underline"
-                        >
-                          Editar
-                        </Link>
-                      ) : null}
+                      <Link
+                        href={`/cartas/${row.id}`}
+                        className="mr-3 text-xs font-semibold text-slate-600 hover:underline"
+                      >
+                        Detalles
+                      </Link>
                       {canDelete ? (
                         <button
                           type="button"

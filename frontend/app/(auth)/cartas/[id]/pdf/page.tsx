@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Download, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Download, ExternalLink, FileText, Trash2 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
-import { canDeleteCartas, canEditCartas } from "@/lib/access";
+import { canDeleteCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
-import { deleteCarta, getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
+import { deleteCarta, getCartaById, type CartaWithRelations, generadoPorLabel } from "@/lib/queries/cartas";
 import { cartaPdfFilename } from "@/lib/pdf/cartaPdf";
 
 export default function CartaPdfPreviewPage() {
@@ -77,7 +77,7 @@ export default function CartaPdfPreviewPage() {
       <PageHeader
         eyebrow="Documento generado"
         title={`Carta ${carta.folio}`}
-        subtitle={`${carta.nombre_responsable} · ${carta.cr_sucursales?.nombre}`}
+        subtitle={`${carta.nombre_responsable} · ${carta.cr_sucursales?.nombre} · Generado por: ${generadoPorLabel(carta)}`}
         actions={
           <>
           {user && canDeleteCartas(user) ? (
@@ -91,12 +91,10 @@ export default function CartaPdfPreviewPage() {
               {deleting ? "Eliminando..." : "Eliminar"}
             </button>
           ) : null}
-          {user && canEditCartas(user) ? (
-            <Link href={`/cartas/${id}`} className="btn-secondary gap-2">
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-              Editar carta
-            </Link>
-          ) : null}
+          <Link href={`/cartas/${id}`} className="btn-secondary gap-2">
+            <FileText className="h-4 w-4" aria-hidden="true" />
+            Detalles
+          </Link>
           <a href={`${pdfUrl}?download=1`} download={filename} className="btn-primary gap-2">
             <Download className="h-4 w-4" aria-hidden="true" />
             Descargar PDF

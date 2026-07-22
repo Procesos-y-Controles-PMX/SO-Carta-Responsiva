@@ -4,6 +4,14 @@ import type { CartaLineInput, CrUsuario } from "@/lib/types/db";
 
 export type { CartaWithRelations };
 
+export function generadoPorLabel(
+  carta: Pick<CartaWithRelations, "cr_usuarios">,
+): string {
+  const name = carta.cr_usuarios?.nombre_completo?.trim();
+  const email = carta.cr_usuarios?.email?.trim();
+  return name || email || "—";
+}
+
 export async function listCartas(
   _user?: CrUsuario,
   options?: { idSucursal?: string; from?: string; to?: string },

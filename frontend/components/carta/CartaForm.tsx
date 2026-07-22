@@ -29,6 +29,9 @@ import {
 
 export type CartaFormInitial = {
   id?: string;
+  folio?: string;
+  generadoPor?: string;
+  createdAt?: string;
   id_sucursal: string;
   id_responsable: string;
   items: CartaLineInput[];
@@ -246,7 +249,7 @@ export default function CartaForm({ mode, initial }: Props) {
 
   return (
     <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-md bg-[#111923] px-5 py-5 text-white shadow-sm sm:px-7">
+      <section className="relative overflow-hidden rounded-md bg-[#0d1117] px-5 py-5 text-white shadow-sm sm:px-7">
         <div className="absolute inset-y-0 right-0 w-40 bg-[linear-gradient(135deg,transparent_45%,rgba(237,28,36,.95)_45%,rgba(237,28,36,.95)_52%,transparent_52%)] opacity-50" />
         <div className="relative flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm bg-brand">
@@ -257,12 +260,22 @@ export default function CartaForm({ mode, initial }: Props) {
               Mercancía Abordo
             </p>
             <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">
-              {mode === "create" ? "Generar carta" : "Editar carta"}
+              {mode === "create" ? "Generar carta" : "Detalles de la carta"}
             </h2>
+            {mode === "edit" && initial?.folio ? (
+              <p className="mt-1 font-mono text-sm text-slate-300">{initial.folio}</p>
+            ) : null}
             <p className="mt-1 max-w-xl text-sm text-slate-400">
-              Selecciona al responsable y el material que saldrá de la sucursal.
-              El folio y el registro se crean automáticamente.
+              {mode === "create"
+                ? "Selecciona al responsable y el material que saldrá de la sucursal. El folio y el registro se crean automáticamente."
+                : "Revisa o ajusta el responsable y los productos. Al guardar se actualiza el PDF."}
             </p>
+            {mode === "edit" && initial?.generadoPor ? (
+              <p className="mt-3 inline-flex items-center rounded-sm border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
+                <span className="font-semibold text-slate-400">Generado por:</span>
+                <span className="ml-1.5 font-medium text-white">{initial.generadoPor}</span>
+              </p>
+            ) : null}
           </div>
         </div>
       </section>
