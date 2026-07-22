@@ -150,6 +150,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
           <InteractiveGridPattern
             cellSize={40}
+            skewY={6}
             wave
             waveDuration={5}
             className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
