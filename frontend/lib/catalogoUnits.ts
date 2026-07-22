@@ -28,8 +28,11 @@ export function normalizeUnidadMedida(value: string | null | undefined): string 
 }
 
 /** Options for a select; includes legacy values so existing rows stay editable. */
-export function unidadMedidaSelectOptions(current?: string | null) {
-  const options = UNIDAD_MEDIDA_OPTIONS.map((o) => ({ value: o.value, label: o.label }));
+export function unidadMedidaSelectOptions(current?: string | null): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = UNIDAD_MEDIDA_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
   const legacy = normalizeUnidadMedida(current);
   if (legacy && !ALLOWED.has(legacy)) {
     options.unshift({ value: legacy, label: `${legacy} — (actual)` });
