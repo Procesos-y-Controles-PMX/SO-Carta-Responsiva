@@ -83,7 +83,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen app-canvas">
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/10 bg-gradient-to-b from-[#0e1626] to-[#070b14] shadow-lg transition-all duration-300 lg:flex",
+          "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/10 bg-[#0d1117] shadow-lg transition-all duration-300 lg:flex",
           sidebarCollapsed ? "w-[72px]" : "w-[250px]"
         )}
       >
@@ -129,7 +129,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="border-t border-white/10 p-3">
-          <div className={cn("flex items-center gap-3 rounded-sm border border-white/10 bg-gradient-to-br from-[#131c2e] to-[#0c1322] p-3", sidebarCollapsed && "justify-center p-2")}>
+          <div className={cn("flex items-center gap-3 rounded-sm border border-white/10 bg-[#0d1117] p-3", sidebarCollapsed && "justify-center p-2")}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{initials}</div>
             {!sidebarCollapsed ? (
               <>

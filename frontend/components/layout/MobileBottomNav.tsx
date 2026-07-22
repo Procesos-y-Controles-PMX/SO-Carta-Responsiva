@@ -14,7 +14,7 @@ export type MobileNavItem = {
 export default function MobileBottomNav({ items }: { items: MobileNavItem[] }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-gradient-to-t from-[#070b14] to-[#0e1626] shadow-[0_-4px_24px_rgba(0,0,0,0.2)] pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0d1117] shadow-[0_-4px_24px_rgba(0,0,0,0.2)] pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Navegación principal"
     >
       <div className="flex h-[4.25rem] items-stretch">
