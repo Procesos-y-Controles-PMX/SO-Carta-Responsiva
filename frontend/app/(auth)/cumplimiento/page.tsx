@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { Filter } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
@@ -31,14 +31,30 @@ function matchesSearch(haystack: string, query: string): boolean {
   return haystack.toLocaleLowerCase("es-MX").includes(query);
 }
 
+function subscribeMd(onChange: () => void) {
+  const media = window.matchMedia("(min-width: 768px)");
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function useIsDesktop() {
+  return useSyncExternalStore(
+    subscribeMd,
+    () => window.matchMedia("(min-width: 768px)").matches,
+    () => true,
+  );
+}
+
 export default function CumplimientoPage() {
   const { user } = useAuth();
+  const isDesktop = useIsDesktop();
   const [month, setMonth] = useState(monthInputValue(new Date()));
   const [rows, setRows] = useState<ComplianceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [status, setStatus] = useState<StatusFilter>("pending");
   const [region, setRegion] = useState("all");
+  const [showResponsables, setShowResponsables] = useState(false);
 
   const range = useMemo(() => {
     const [y, m] = month.split("-").map(Number);
@@ -50,11 +66,21 @@ export default function CumplimientoPage() {
   useEffect(() => {
     if (!user || !canViewCompliance(user)) return;
     setLoading(true);
+    setShowResponsables(false);
     getComplianceReport(user, range.from, range.to).then((data) => {
-      setRows(data);
-      setLoading(false);
+      startTransition(() => {
+        setRows(data);
+        setLoading(false);
+      });
     });
   }, [user, range.from, range.to]);
+
+  // Mount the heavier responsables table after the sucursal view paints.
+  useEffect(() => {
+    if (loading || rows.length === 0) return;
+    const id = window.setTimeout(() => setShowResponsables(true), 0);
+    return () => window.clearTimeout(id);
+  }, [loading, rows]);
 
   const regionOptions = useMemo(() => {
     const regions = Array.from(
@@ -86,6 +112,7 @@ export default function CumplimientoPage() {
   }, [rows, search, status, region]);
 
   const filteredResponsables = useMemo(() => {
+    if (!showResponsables) return [];
     const query = search.trim().toLocaleLowerCase("es-MX");
     return rows.flatMap((row) => {
       if (region !== "all" && (row.sucursal.region?.trim() ?? "") !== region) {
@@ -104,11 +131,14 @@ export default function CumplimientoPage() {
         })
         .map((resp) => ({ row, resp }));
     });
-  }, [rows, search, status, region]);
+  }, [rows, search, status, region, showResponsables]);
 
-  const sinSucursal = sucursalesSinCarta(rows);
-  const sinResponsable = responsablesSinCarta(rows);
-  const totalCartas = rows.reduce((sum, r) => sum + r.cartasSucursalEnPeriodo, 0);
+  const sinSucursal = useMemo(() => sucursalesSinCarta(rows), [rows]);
+  const sinResponsable = useMemo(() => responsablesSinCarta(rows), [rows]);
+  const totalCartas = useMemo(
+    () => rows.reduce((sum, r) => sum + r.cartasSucursalEnPeriodo, 0),
+    [rows],
+  );
 
   if (!user || !canViewCompliance(user)) {
     return <p className="text-sm text-slate-500">Acceso restringido a administradores.</p>;
@@ -209,107 +239,109 @@ export default function CumplimientoPage() {
               <p className="px-5 py-8 text-center text-sm text-slate-500">
                 No hay sucursales que coincidan con los filtros.
               </p>
-            ) : (
-              <>
-                <div className="divide-y divide-slate-100 md:hidden">
+            ) : isDesktop ? (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Sucursal</th>
+                    <th className="px-4 py-3">Cartas en periodo</th>
+                    <th className="px-4 py-3">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {filteredRows.map((row) => (
-                    <article key={row.sucursal.id} className="flex items-center justify-between gap-4 p-4">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{row.sucursal.nombre}</p>
-                        <p className="text-xs text-slate-500">{row.cartasSucursalEnPeriodo} cartas en el periodo</p>
-                      </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${row.cartasSucursalEnPeriodo === 0 ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
-                        {row.cartasSucursalEnPeriodo === 0 ? "Pendiente" : "Cumple"}
-                      </span>
-                    </article>
-                  ))}
-                </div>
-                <table className="hidden w-full text-left text-sm md:table">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Sucursal</th>
-                      <th className="px-4 py-3">Cartas en periodo</th>
-                      <th className="px-4 py-3">Estado</th>
+                    <tr key={row.sucursal.id} className="border-t border-slate-100">
+                      <td className="px-4 py-3">{row.sucursal.nombre}</td>
+                      <td className="px-4 py-3">{row.cartasSucursalEnPeriodo}</td>
+                      <td className="px-4 py-3">
+                        {row.cartasSucursalEnPeriodo === 0 ? (
+                          <span className="font-medium text-red-600">Sin carta</span>
+                        ) : (
+                          <span className="text-emerald-700">Con carta</span>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRows.map((row) => (
-                      <tr key={row.sucursal.id} className="border-t border-slate-100">
-                        <td className="px-4 py-3">{row.sucursal.nombre}</td>
-                        <td className="px-4 py-3">{row.cartasSucursalEnPeriodo}</td>
-                        <td className="px-4 py-3">
-                          {row.cartasSucursalEnPeriodo === 0 ? (
-                            <span className="font-medium text-red-600">Sin carta</span>
-                          ) : (
-                            <span className="text-emerald-700">Con carta</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredRows.map((row) => (
+                  <article key={row.sucursal.id} className="flex items-center justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{row.sucursal.nombre}</p>
+                      <p className="text-xs text-slate-500">{row.cartasSucursalEnPeriodo} cartas en el periodo</p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${row.cartasSucursalEnPeriodo === 0 ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
+                      {row.cartasSucursalEnPeriodo === 0 ? "Pendiente" : "Cumple"}
+                    </span>
+                  </article>
+                ))}
+              </div>
             )}
           </div>
 
           <div className="card-panel overflow-hidden">
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
               <h3 className="text-sm font-semibold text-slate-900">Por responsable</h3>
-              <p className="text-xs text-slate-500">{filteredResponsables.length} resultados</p>
+              <p className="text-xs text-slate-500">
+                {showResponsables ? `${filteredResponsables.length} resultados` : "Cargando..."}
+              </p>
             </div>
-            {filteredResponsables.length === 0 ? (
+            {!showResponsables ? (
+              <p className="px-5 py-8 text-center text-sm text-slate-500">Preparando detalle por responsable...</p>
+            ) : filteredResponsables.length === 0 ? (
               <p className="px-5 py-8 text-center text-sm text-slate-500">
                 No hay responsables que coincidan con los filtros.
               </p>
-            ) : (
-              <>
-                <div className="divide-y divide-slate-100 md:hidden">
+            ) : isDesktop ? (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Sucursal</th>
+                    <th className="px-4 py-3">Responsable</th>
+                    <th className="px-4 py-3">Cartas</th>
+                    <th className="px-4 py-3">Última carta</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {filteredResponsables.map(({ row, resp }) => (
-                    <article key={resp.id} className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">{resp.nombre}</p>
-                          <p className="text-xs text-slate-500">{row.sucursal.nombre}</p>
-                        </div>
-                        <span className={`text-sm font-bold ${resp.cartasEnPeriodo === 0 ? "text-red-600" : "text-slate-900"}`}>
-                          {resp.cartasEnPeriodo}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        Última carta: {resp.ultimaCarta ? formatDate(resp.ultimaCarta) : "Sin registro"}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-                <table className="hidden w-full text-left text-sm md:table">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Sucursal</th>
-                      <th className="px-4 py-3">Responsable</th>
-                      <th className="px-4 py-3">Cartas</th>
-                      <th className="px-4 py-3">Última carta</th>
+                    <tr key={resp.id} className="border-t border-slate-100">
+                      <td className="px-4 py-3">{row.sucursal.nombre}</td>
+                      <td className="px-4 py-3">{resp.nombre}</td>
+                      <td className="px-4 py-3">
+                        {resp.cartasEnPeriodo === 0 ? (
+                          <span className="font-medium text-red-600">0</span>
+                        ) : (
+                          resp.cartasEnPeriodo
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {resp.ultimaCarta ? formatDate(resp.ultimaCarta) : "—"}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filteredResponsables.map(({ row, resp }) => (
-                      <tr key={resp.id} className="border-t border-slate-100">
-                        <td className="px-4 py-3">{row.sucursal.nombre}</td>
-                        <td className="px-4 py-3">{resp.nombre}</td>
-                        <td className="px-4 py-3">
-                          {resp.cartasEnPeriodo === 0 ? (
-                            <span className="font-medium text-red-600">0</span>
-                          ) : (
-                            resp.cartasEnPeriodo
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {resp.ultimaCarta ? formatDate(resp.ultimaCarta) : "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredResponsables.map(({ row, resp }) => (
+                  <article key={resp.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{resp.nombre}</p>
+                        <p className="text-xs text-slate-500">{row.sucursal.nombre}</p>
+                      </div>
+                      <span className={`text-sm font-bold ${resp.cartasEnPeriodo === 0 ? "text-red-600" : "text-slate-900"}`}>
+                        {resp.cartasEnPeriodo}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Última carta: {resp.ultimaCarta ? formatDate(resp.ultimaCarta) : "Sin registro"}
+                    </p>
+                  </article>
+                ))}
+              </div>
             )}
           </div>
         </>
