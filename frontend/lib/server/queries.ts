@@ -336,6 +336,27 @@ export async function updateCarta(
   return getCartaById(supabase, id);
 }
 
+export async function deleteCarta(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<boolean> {
+  const { error: itemsError } = await supabase
+    .from("cr_carta_items")
+    .delete()
+    .eq("id_carta", id);
+  if (itemsError) {
+    console.error("deleteCarta items:", itemsError.message);
+    return false;
+  }
+
+  const { error } = await supabase.from("cr_cartas").delete().eq("id", id);
+  if (error) {
+    console.error("deleteCarta:", error.message);
+    return false;
+  }
+  return true;
+}
+
 export type ComplianceRow = {
   sucursal: CrSucursal;
   responsables: Array<

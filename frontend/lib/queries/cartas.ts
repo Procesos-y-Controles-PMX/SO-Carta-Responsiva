@@ -58,3 +58,10 @@ export async function updateCarta(
   });
   return result.ok ? result.data : null;
 }
+
+export async function deleteCarta(id: string): Promise<boolean> {
+  const result = await apiFetch<{ id: string }>(`/api/cartas/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+  return result.ok;
+}

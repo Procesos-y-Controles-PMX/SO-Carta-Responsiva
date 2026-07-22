@@ -39,6 +39,11 @@ export function canEditCartas(user: CrUsuario): boolean {
   return !isZoneAdmin(user);
 }
 
+/** Destructive: only general admins may remove cartas from historial. */
+export function canDeleteCartas(user: CrUsuario): boolean {
+  return isGeneralAdmin(user);
+}
+
 export function userCanAccessSucursal(
   user: CrUsuario,
   sucursal: Pick<CrSucursal, "id" | "region">,

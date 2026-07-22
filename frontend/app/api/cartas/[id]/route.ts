@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { canEditCartas, userCanAccessSucursal } from "@/lib/access";
+import { canDeleteCartas, canEditCartas, userCanAccessSucursal } from "@/lib/access";
 import { badRequest, forbidden, requireAuth } from "@/lib/api/require-auth";
-import { getCartaById, getSucursalById, updateCarta } from "@/lib/server/queries";
+import {
+  deleteCarta,
+  getCartaById,
+  getSucursalById,
+  updateCarta,
+} from "@/lib/server/queries";
 import type { CartaLineInput } from "@/lib/types/db";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -56,4 +61,30 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
   return NextResponse.json({ ok: true, data: carta });
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const auth = await requireAuth();
+  if (!auth.ok) return auth.response;
+  if (!canDeleteCartas(auth.ctx.user)) {
+    return forbidden("Solo un administrador general puede eliminar cartas.");
+  }
+
+  const { id } = await context.params;
+  const existing = await getCartaById(auth.ctx.supabase, id, auth.ctx.user);
+  if (!existing) {
+    return NextResponse.json({ ok: false, message: "Carta no encontrada." }, { status: 404 });
+  }
+
+  const sucursal = await getSucursalById(auth.ctx.supabase, existing.id_sucursal);
+  if (!sucursal || !userCanAccessSucursal(auth.ctx.user, sucursal)) return forbidden();
+
+  const deleted = await deleteCarta(auth.ctx.supabase, id);
+  if (!deleted) {
+    return NextResponse.json(
+      { ok: false, message: "No se pudo eliminar la carta." },
+      { status: 500 },
+    );
+  }
+  return NextResponse.json({ ok: true, data: { id } });
 }

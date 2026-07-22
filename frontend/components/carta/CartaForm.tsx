@@ -7,10 +7,16 @@ import { toast } from "sonner";
 import { FileText, MapPin, PackageOpen, Plus, Trash2, UserRound } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
-import { canGenerateCartas, canManageMasterData, userCanAccessSucursal } from "@/lib/access";
+import {
+  canDeleteCartas,
+  canEditCartas,
+  canGenerateCartas,
+  canManageMasterData,
+  userCanAccessSucursal,
+} from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { listCatalogoBySucursal } from "@/lib/queries/catalogo";
-import { createCarta, updateCarta } from "@/lib/queries/cartas";
+import { createCarta, deleteCarta, updateCarta } from "@/lib/queries/cartas";
 import { listResponsablesBySucursal } from "@/lib/queries/responsables";
 import { listSucursales } from "@/lib/queries/sucursales";
 import type { CartaLineInput, CrCatalogoItem, CrResponsable, CrSucursal } from "@/lib/types/db";
@@ -60,6 +66,8 @@ export default function CartaForm({ mode, initial }: Props) {
   );
   const [productSearch, setProductSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const canDelete = user ? canDeleteCartas(user) : false;
 
   useEffect(() => {
     if (!user) return;
@@ -129,9 +137,28 @@ export default function CartaForm({ mode, initial }: Props) {
     setLines((prev) => (prev.length <= 1 ? prev : prev.filter((line) => line.key !== key)));
   }
 
+  async function handleDelete() {
+    if (!user || !initial?.id || !canDelete || deleting) return;
+    const confirmed = window.confirm(
+      "¿Eliminar esta carta del historial? Esta acción no se puede deshacer.",
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    const ok = await deleteCarta(initial.id);
+    setDeleting(false);
+    if (!ok) {
+      toast.error("No se pudo eliminar la carta.");
+      return;
+    }
+    toast.success("Carta eliminada.");
+    router.push("/cartas");
+  }
+
   async function handleSubmit() {
     if (!user) return;
-    if (!canGenerateCartas(user)) {
+    const canMutate = mode === "create" ? canGenerateCartas(user) : canEditCartas(user);
+    if (!canMutate) {
       toast.error("Tu acceso es únicamente de consulta.");
       return;
     }
@@ -210,10 +237,10 @@ export default function CartaForm({ mode, initial }: Props) {
       return;
     }
     toast.success("Carta actualizada.");
-    router.push(`/cartas/${carta.id}`);
+    router.push(`/cartas/${carta.id}/pdf`);
   }
 
-  if (user && !canGenerateCartas(user)) {
+  if (user && !(mode === "create" ? canGenerateCartas(user) : canEditCartas(user))) {
     return <p className="text-sm text-slate-500">Tu acceso es únicamente de consulta.</p>;
   }
 
@@ -474,21 +501,36 @@ export default function CartaForm({ mode, initial }: Props) {
                 {money(total)}
               </span>
             </div>
-            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <Link href="/cartas" className="btn-secondary">Cancelar</Link>
-              <button
-                type="button"
-                className="btn-primary gap-2"
-                disabled={saving}
-                onClick={handleSubmit}
-              >
-                <FileText className="h-4 w-4" aria-hidden="true" />
-                {saving
-                  ? "Generando..."
-                  : mode === "create"
-                    ? "Generar carta y PDF"
-                    : "Guardar y actualizar PDF"}
-              </button>
+            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+              {mode === "edit" && canDelete ? (
+                <button
+                  type="button"
+                  className="btn-danger gap-2"
+                  disabled={saving || deleting}
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  {deleting ? "Eliminando..." : "Eliminar carta"}
+                </button>
+              ) : (
+                <span className="hidden sm:block" />
+              )}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Link href="/cartas" className="btn-secondary">Cancelar</Link>
+                <button
+                  type="button"
+                  className="btn-primary gap-2"
+                  disabled={saving || deleting}
+                  onClick={handleSubmit}
+                >
+                  <FileText className="h-4 w-4" aria-hidden="true" />
+                  {saving
+                    ? "Guardando..."
+                    : mode === "create"
+                      ? "Generar carta y PDF"
+                      : "Guardar y actualizar PDF"}
+                </button>
+              </div>
             </div>
           </div>
         </section>

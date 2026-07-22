@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { ArrowRight, ClipboardList, FilePlus2, FileText } from "lucide-react";
-import { canEditCartas, canGenerateCartas } from "@/lib/access";
+import { canDeleteCartas, canEditCartas, canGenerateCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
-import { listCartas, type CartaWithRelations } from "@/lib/queries/cartas";
+import { deleteCarta, listCartas, type CartaWithRelations } from "@/lib/queries/cartas";
 import { formatDate } from "@/lib/utils";
 
 export default function CartasHistorialPage() {
   const { user } = useAuth();
   const [rows, setRows] = useState<CartaWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const canGenerate = user ? canGenerateCartas(user) : false;
   const canEdit = user ? canEditCartas(user) : false;
+  const canDelete = user ? canDeleteCartas(user) : false;
 
   useEffect(() => {
     if (!user) return;
@@ -22,6 +25,24 @@ export default function CartasHistorialPage() {
       setLoading(false);
     });
   }, [user]);
+
+  async function handleDelete(row: CartaWithRelations) {
+    if (!canDelete || deletingId) return;
+    const confirmed = window.confirm(
+      `¿Eliminar la carta ${row.folio}? Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(row.id);
+    const ok = await deleteCarta(row.id);
+    setDeletingId(null);
+    if (!ok) {
+      toast.error("No se pudo eliminar la carta.");
+      return;
+    }
+    setRows((prev) => prev.filter((item) => item.id !== row.id));
+    toast.success(`Carta ${row.folio} eliminada.`);
+  }
 
   return (
     <div className="space-y-6">
@@ -99,7 +120,9 @@ export default function CartasHistorialPage() {
         ) : (
           <>
             <div className="divide-y divide-slate-100 md:hidden">
-              {rows.map((row) => (
+              {rows.map((row) => {
+                const actionCols = 1 + (canEdit ? 1 : 0) + (canDelete ? 1 : 0);
+                return (
                 <article key={row.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -111,14 +134,29 @@ export default function CartasHistorialPage() {
                       {row.cr_carta_items.length} productos
                     </span>
                   </div>
-                  <div className={`mt-3 grid gap-2 ${canEdit ? "grid-cols-2" : "grid-cols-1"}`}>
+                  <div
+                    className={`mt-3 grid gap-2 ${
+                      actionCols >= 3 ? "grid-cols-1 sm:grid-cols-3" : actionCols === 2 ? "grid-cols-2" : "grid-cols-1"
+                    }`}
+                  >
                     {canEdit ? (
                       <Link href={`/cartas/${row.id}`} className="btn-secondary min-h-11">Editar</Link>
                     ) : null}
                     <Link href={`/cartas/${row.id}/pdf`} className="btn-primary min-h-11">Ver PDF</Link>
+                    {canDelete ? (
+                      <button
+                        type="button"
+                        className="btn-danger min-h-11"
+                        disabled={deletingId === row.id}
+                        onClick={() => handleDelete(row)}
+                      >
+                        {deletingId === row.id ? "Eliminando..." : "Eliminar"}
+                      </button>
+                    ) : null}
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[720px] text-left text-sm">
@@ -140,7 +178,7 @@ export default function CartasHistorialPage() {
                     <td className="px-4 py-3">{row.nombre_responsable}</td>
                     <td className="px-4 py-3">{formatDate(row.created_at)}</td>
                     <td className="px-4 py-3">{row.cr_carta_items.length}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <Link
                         href={`/cartas/${row.id}/pdf`}
                         className="mr-3 text-xs font-semibold text-brand hover:underline"
@@ -150,10 +188,20 @@ export default function CartasHistorialPage() {
                       {canEdit ? (
                         <Link
                           href={`/cartas/${row.id}`}
-                          className="text-xs font-semibold text-slate-600 hover:underline"
+                          className="mr-3 text-xs font-semibold text-slate-600 hover:underline"
                         >
                           Editar
                         </Link>
+                      ) : null}
+                      {canDelete ? (
+                        <button
+                          type="button"
+                          className="text-xs font-semibold text-brand hover:underline disabled:opacity-50"
+                          disabled={deletingId === row.id}
+                          onClick={() => handleDelete(row)}
+                        >
+                          {deletingId === row.id ? "Eliminando..." : "Eliminar"}
+                        </button>
                       ) : null}
                     </td>
                   </tr>

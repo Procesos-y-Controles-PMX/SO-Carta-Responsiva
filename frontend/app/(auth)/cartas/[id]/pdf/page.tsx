@@ -4,25 +4,46 @@
 import { Terminal, TypingAnimation, AnimatedSpan } from "@promexma/ui";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { Download, ExternalLink, Pencil } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Download, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 
-import { canEditCartas } from "@/lib/access";
+import { canDeleteCartas, canEditCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
-import { getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
+import { deleteCarta, getCartaById, type CartaWithRelations } from "@/lib/queries/cartas";
 import { cartaPdfFilename } from "@/lib/pdf/cartaPdf";
 
 export default function CartaPdfPreviewPage() {
   const params = useParams();
   const id = params.id as string;
+  const router = useRouter();
   const { user } = useAuth();
   const [carta, setCarta] = useState<CartaWithRelations | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     getCartaById(id, user).then(setCarta);
   }, [id, user]);
+
+  async function handleDelete() {
+    if (!user || !carta || !canDeleteCartas(user) || deleting) return;
+    const confirmed = window.confirm(
+      `¿Eliminar la carta ${carta.folio}? Esta acción no se puede deshacer.`,
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    const ok = await deleteCarta(carta.id);
+    setDeleting(false);
+    if (!ok) {
+      toast.error("No se pudo eliminar la carta.");
+      return;
+    }
+    toast.success(`Carta ${carta.folio} eliminada.`);
+    router.push("/cartas");
+  }
 
   if (!carta) {
     return (
@@ -59,6 +80,17 @@ export default function CartaPdfPreviewPage() {
         subtitle={`${carta.nombre_responsable} · ${carta.cr_sucursales?.nombre}`}
         actions={
           <>
+          {user && canDeleteCartas(user) ? (
+            <button
+              type="button"
+              className="btn-danger gap-2"
+              disabled={deleting}
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              {deleting ? "Eliminando..." : "Eliminar"}
+            </button>
+          ) : null}
           {user && canEditCartas(user) ? (
             <Link href={`/cartas/${id}`} className="btn-secondary gap-2">
               <Pencil className="h-4 w-4" aria-hidden="true" />
