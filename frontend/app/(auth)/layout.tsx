@@ -147,7 +147,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={cn("relative min-h-screen transition-all duration-300 lg:ml-[250px]", sidebarCollapsed && "lg:ml-[72px]")}>
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden" aria-hidden>
           <InteractiveGridPattern
             cellSize={40}
             skewY={6}
