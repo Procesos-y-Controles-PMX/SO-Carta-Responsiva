@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { ArrowRight, ClipboardList, FilePlus2, FileText } from "lucide-react";
+import { ArrowRight, FilePlus2, FileText } from "lucide-react";
 import { canDeleteCartas, canEditCartas, canGenerateCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { deleteCarta, listCartas, type CartaWithRelations } from "@/lib/queries/cartas";
@@ -62,11 +62,10 @@ export default function CartasHistorialPage() {
         </div>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {canGenerate ? (
+      {canGenerate ? (
         <Link
           href="/cartas/nueva"
-          className="group card-panel flex items-center gap-4 p-5 transition-all hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md"
+          className="group card-panel flex max-w-xl items-center gap-4 p-5 transition-all hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-brand text-white">
             <FilePlus2 className="h-5 w-5" aria-hidden="true" />
@@ -80,27 +79,9 @@ export default function CartasHistorialPage() {
           </div>
           <ArrowRight className="h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand" />
         </Link>
-        ) : null}
+      ) : null}
 
-        <a
-          href="#historial"
-          className="group card-panel flex items-center gap-4 p-5 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
-        >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm bg-slate-800 text-white">
-            <ClipboardList className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Consulta
-            </p>
-            <h3 className="font-display text-xl font-semibold text-slate-900">Ver historial</h3>
-            <p className="text-xs text-slate-500">Revisa, edita o descarga documentos anteriores.</p>
-          </div>
-          <ArrowRight className="h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-slate-700" />
-        </a>
-      </div>
-
-      <section id="historial" className="card-panel scroll-mt-28 overflow-hidden">
+      <section className="card-panel overflow-hidden">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
