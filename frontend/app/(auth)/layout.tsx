@@ -93,7 +93,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {!sidebarCollapsed ? (
               <div className="min-w-0">
                 <p className="text-sm font-bold leading-none text-white">Promexma</p>
-                <p className="mt-0.5 truncate text-[10px] font-medium text-slate-500">Carta Responsiva</p>
+                <p className="mt-0.5 truncate text-[10px] font-medium text-slate-500">SO Cartas Responsivas</p>
               </div>
             ) : null}
           </Link>
@@ -161,7 +161,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="truncate font-display text-lg font-semibold tracking-tight text-slate-900 lg:text-xl">
-                Carta Responsiva
+                SO Cartas Responsivas
               </h1>
               <p className="truncate text-xs text-slate-500 lg:text-sm">
                 {roleLabel}

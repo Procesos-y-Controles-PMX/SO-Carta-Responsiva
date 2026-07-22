@@ -55,7 +55,7 @@ export default function LoginPage() {
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">Promexma</p>
           <h1 className="font-display mt-2 text-2xl font-semibold uppercase tracking-tight text-slate-900">
-            Carta Responsiva
+            SO Cartas Responsivas
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             Mercancía Abordo — generación de cartas responsivas.

@@ -69,7 +69,7 @@ function HandoffInner() {
             role="status"
             aria-label="Cargando"
           />
-          <p className="text-sm text-slate-500">Entrando a Carta Responsiva...</p>
+          <p className="text-sm text-slate-500">Entrando a SO Cartas Responsivas...</p>
         </div>
       )}
     </main>

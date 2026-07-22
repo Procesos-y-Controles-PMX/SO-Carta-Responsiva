@@ -19,7 +19,7 @@ const sairaCondensed = Saira_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Carta Responsiva",
+  title: "SO Cartas Responsivas",
   description: "Generación de cartas responsivas Mercancía Abordo — Promexma",
 };
 
