@@ -57,6 +57,40 @@ def api_request(path, method="GET", payload=None, prefer=None):
         raise RuntimeError(f"{method} {path}: {error.code} {detail}") from error
 
 
+def api_get_all(path: str):
+    """Paginate through PostgREST results (default page size 1000)."""
+    rows = []
+    offset = 0
+    page = 1000
+    while True:
+        sep = "&" if "?" in path else "?"
+        chunk = api_request(f"{path}{sep}limit={page}&offset={offset}")
+        if not chunk:
+            break
+        rows.extend(chunk)
+        if len(chunk) < page:
+            break
+        offset += page
+    return rows
+
+
+def dedupe_managers(managers):
+    """Collapse repeats in file by (centro, normalized nombre); last wins."""
+    by_key = {}
+    collapsed = 0
+    for manager in managers:
+        key = f'{manager["codigo_sap"]}:{normalized(manager["nombre"])}'
+        if key in by_key:
+            collapsed += 1
+        nombre = normalized(manager["nombre"])
+        by_key[key] = {
+            "codigo_sap": manager["codigo_sap"],
+            "nombre": nombre,
+            "nombre_normalizado": nombre,
+        }
+    return list(by_key.values()), collapsed
+
+
 def parse_branches(path):
     rows = rows_from_sheet(path)
     branches = []
@@ -83,7 +117,7 @@ def parse_branches(path):
             }
         )
         if manager_name:
-            managers.append({"codigo_sap": center, "nombre": manager_name.upper()})
+            managers.append({"codigo_sap": center, "nombre": manager_name})
     return branches, managers
 
 
@@ -138,6 +172,7 @@ def main():
     args = parser.parse_args()
 
     branches, managers = parse_branches(args.branches_workbook)
+    managers, managers_collapsed = dedupe_managers(managers)
     users, missing_email, unknown_roles = parse_access(args.access_workbook)
     role_counts = {
         role: sum(user["rol"] == role for user in users)
@@ -146,6 +181,8 @@ def main():
 
     print(f"Sucursales preparadas: {len(branches)}")
     print(f"Gerentes preparados como responsables: {len(managers)}")
+    if managers_collapsed:
+        print(f"Gerentes duplicados colapsados en archivo: {managers_collapsed}")
     print(f"Accesos válidos: {len(users)} {role_counts}")
     print(f"Filas sin correo: {len(missing_email)}")
     print(f"Roles desconocidos: {len(unknown_roles)}")
@@ -161,7 +198,7 @@ def main():
             "Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY."
         )
 
-    existing_branches = api_request("cr_sucursales?select=id,codigo_sap")
+    existing_branches = api_get_all("cr_sucursales?select=id,codigo_sap")
     existing_branch_by_center = {
         clean(branch["codigo_sap"]).upper(): branch
         for branch in existing_branches
@@ -183,33 +220,38 @@ def main():
                 payload=branch,
                 prefer="return=minimal",
             )
-    stored_branches = api_request(
+    stored_branches = api_get_all(
         "cr_sucursales?select=id,codigo_sap,region&activo=eq.true"
     )
     branch_by_center = {
         clean(branch["codigo_sap"]).upper(): branch for branch in stored_branches
     }
 
-    existing_responsibles = api_request(
-        "cr_responsables?select=id,id_sucursal,nombre"
+    existing_responsibles = api_get_all(
+        "cr_responsables?select=id,id_sucursal,nombre,nombre_normalizado"
     )
-    existing_by_key = {
-        f'{item["id_sucursal"]}:{normalized(item["nombre"])}': item
-        for item in existing_responsibles
-    }
+    existing_by_key = {}
+    for item in existing_responsibles:
+        key_name = item.get("nombre_normalizado") or normalized(item["nombre"])
+        existing_by_key[f'{item["id_sucursal"]}:{key_name}'] = item
+
     manager_inserts = []
     manager_updates = 0
     for manager in managers:
         branch = branch_by_center.get(manager["codigo_sap"])
         if not branch:
             continue
-        key = f'{branch["id"]}:{normalized(manager["nombre"])}'
+        key = f'{branch["id"]}:{manager["nombre_normalizado"]}'
         existing = existing_by_key.get(key)
         if existing:
             api_request(
                 f'cr_responsables?id=eq.{existing["id"]}',
                 method="PATCH",
-                payload={"activo": True},
+                payload={
+                    "nombre": manager["nombre"],
+                    "nombre_normalizado": manager["nombre_normalizado"],
+                    "activo": True,
+                },
                 prefer="return=minimal",
             )
             manager_updates += 1
@@ -218,16 +260,19 @@ def main():
                 {
                     "id_sucursal": branch["id"],
                     "nombre": manager["nombre"],
+                    "nombre_normalizado": manager["nombre_normalizado"],
                     "activo": True,
                 }
             )
+            existing_by_key[key] = {"id": "(pending)", **manager_inserts[-1]}
     if manager_inserts:
-        api_request(
-            "cr_responsables",
-            method="POST",
-            payload=manager_inserts,
-            prefer="return=minimal",
-        )
+        for index in range(0, len(manager_inserts), 200):
+            api_request(
+                "cr_responsables",
+                method="POST",
+                payload=manager_inserts[index : index + 200],
+                prefer="return=minimal",
+            )
 
     user_payload = []
     missing_centers = []

@@ -71,10 +71,7 @@ function clean(value) {
   return String(value ?? "").normalize("NFC").trim().replace(/\s+/g, " ");
 }
 
-function responsibleName(value) {
-  return clean(value).toLocaleUpperCase("es-MX");
-}
-
+/** Canonical uniqueness key — matches frontend/lib/personName.ts */
 function identity(value) {
   return clean(value)
     .normalize("NFD")
@@ -99,6 +96,21 @@ async function request(path, options = {}) {
 
   const responseBody = await response.text();
   return responseBody ? JSON.parse(responseBody) : null;
+}
+
+async function requestAll(path) {
+  const rows = [];
+  const page = 1000;
+  let offset = 0;
+  while (true) {
+    const sep = path.includes("?") ? "&" : "?";
+    const chunk = await request(`${path}${sep}limit=${page}&offset=${offset}`);
+    if (!chunk?.length) break;
+    rows.push(...chunk);
+    if (chunk.length < page) break;
+    offset += page;
+  }
+  return rows;
 }
 
 const sucursalesCsv = parseCsv(await readFile(sucursalesPath, "utf8"));
@@ -130,14 +142,13 @@ if (invalidSucursales.length || duplicateCenters.length) {
 }
 
 const knownCenters = new Set(sucursales.map((sucursal) => sucursal.codigo_sap));
-const seenResponsables = new Set();
-const responsables = [];
+const seenResponsables = new Map();
 const unmatched = [];
 let duplicatesRemoved = 0;
 
 for (const row of responsablesCsv) {
   const codigoSap = clean(row.Centro).toLocaleUpperCase("es-MX");
-  const nombre = responsibleName(row.Nombre);
+  const nombre = identity(row.Nombre);
 
   if (!codigoSap || !nombre) continue;
   if (!knownCenters.has(codigoSap)) {
@@ -145,19 +156,23 @@ for (const row of responsablesCsv) {
     continue;
   }
 
-  const key = `${codigoSap}:${identity(nombre)}`;
+  const key = `${codigoSap}:${nombre}`;
   if (seenResponsables.has(key)) {
     duplicatesRemoved += 1;
-    continue;
   }
-
-  seenResponsables.add(key);
-  responsables.push({ codigo_sap: codigoSap, nombre });
+  // Last wins within file
+  seenResponsables.set(key, {
+    codigo_sap: codigoSap,
+    nombre,
+    nombre_normalizado: nombre,
+  });
 }
+
+const responsables = [...seenResponsables.values()];
 
 console.log(`Sucursales válidas: ${sucursales.length}`);
 console.log(`Responsables válidos: ${responsables.length}`);
-console.log(`Duplicados eliminados: ${duplicatesRemoved}`);
+console.log(`Duplicados colapsados en archivo: ${duplicatesRemoved}`);
 console.log(`Responsables sin sucursal: ${unmatched.length}`);
 for (const item of unmatched) {
   console.log(`  - ${item.codigo_sap}: ${item.nombre}`);
@@ -179,21 +194,18 @@ const branchIdByCenter = new Map(
 );
 const branchIds = [...branchIdByCenter.values()];
 
-await request(
-  `cr_responsables?id_sucursal=in.(${branchIds.join(",")})`,
-  {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ activo: false }),
-  },
-);
+await request(`cr_responsables?id_sucursal=in.(${branchIds.join(",")})`, {
+  method: "PATCH",
+  headers: { Prefer: "return=minimal" },
+  body: JSON.stringify({ activo: false }),
+});
 
-const existing = await request(
-  `cr_responsables?id_sucursal=in.(${branchIds.join(",")})&select=id,id_sucursal,nombre`,
+const existing = await requestAll(
+  `cr_responsables?id_sucursal=in.(${branchIds.join(",")})&select=id,id_sucursal,nombre,nombre_normalizado`,
 );
 const existingByKey = new Map(
   existing.map((item) => [
-    `${item.id_sucursal}:${identity(item.nombre)}`,
+    `${item.id_sucursal}:${item.nombre_normalizado || identity(item.nombre)}`,
     item,
   ]),
 );
@@ -203,20 +215,25 @@ let reactivated = 0;
 for (const responsable of responsables) {
   const branchId = branchIdByCenter.get(responsable.codigo_sap);
   const existingItem = existingByKey.get(
-    `${branchId}:${identity(responsable.nombre)}`,
+    `${branchId}:${responsable.nombre_normalizado}`,
   );
 
   if (existingItem) {
     await request(`cr_responsables?id=eq.${existingItem.id}`, {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ nombre: responsable.nombre, activo: true }),
+      body: JSON.stringify({
+        nombre: responsable.nombre,
+        nombre_normalizado: responsable.nombre_normalizado,
+        activo: true,
+      }),
     });
     reactivated += 1;
   } else {
     inserts.push({
       id_sucursal: branchId,
       nombre: responsable.nombre,
+      nombre_normalizado: responsable.nombre_normalizado,
       activo: true,
     });
   }

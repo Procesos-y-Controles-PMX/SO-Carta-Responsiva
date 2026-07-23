@@ -32,6 +32,7 @@ export type CrResponsable = {
   id: string;
   id_sucursal: string;
   nombre: string;
+  nombre_normalizado?: string;
   activo: boolean;
   created_at: string;
 };

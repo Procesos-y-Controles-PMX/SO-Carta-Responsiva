@@ -9,6 +9,7 @@ import {
 } from "@/lib/access";
 import { MERCANCIA_ABORDO_TERMS } from "@/lib/carta/terms";
 import { generarFolio } from "@/lib/folio";
+import { canonicalizePersonName } from "@/lib/personName";
 import type { CartaWithRelations } from "@/lib/server/queries-types";
 import type {
   CartaLineInput,
@@ -115,17 +116,68 @@ export async function createResponsable(
   supabase: SupabaseClient,
   idSucursal: string,
   nombre: string,
-): Promise<CrResponsable | null> {
+): Promise<
+  | { ok: true; data: CrResponsable; reactivated: boolean }
+  | { ok: false; conflict: true; message: string }
+  | { ok: false; conflict: false; message: string }
+> {
+  const canonical = canonicalizePersonName(nombre);
+  if (!canonical) {
+    return { ok: false, conflict: false, message: "El nombre es requerido." };
+  }
+
+  const { data: existing } = await supabase
+    .from("cr_responsables")
+    .select("*")
+    .eq("id_sucursal", idSucursal)
+    .eq("nombre_normalizado", canonical)
+    .maybeSingle();
+
+  if (existing) {
+    const row = existing as CrResponsable;
+    if (row.activo) {
+      return {
+        ok: false,
+        conflict: true,
+        message: "Ya existe un responsable con ese nombre en la sucursal.",
+      };
+    }
+    const { data: reactivated, error } = await supabase
+      .from("cr_responsables")
+      .update({ nombre: canonical, activo: true })
+      .eq("id", row.id)
+      .select("*")
+      .single();
+    if (error || !reactivated) {
+      console.error("createResponsable reactivate:", error?.message);
+      return { ok: false, conflict: false, message: "No se pudo reactivar el responsable." };
+    }
+    return { ok: true, data: reactivated as CrResponsable, reactivated: true };
+  }
+
   const { data, error } = await supabase
     .from("cr_responsables")
-    .insert({ id_sucursal: idSucursal, nombre: nombre.trim(), activo: true })
+    .insert({
+      id_sucursal: idSucursal,
+      nombre: canonical,
+      nombre_normalizado: canonical,
+      activo: true,
+    })
     .select("*")
     .single();
+
   if (error) {
     console.error("createResponsable:", error.message);
-    return null;
+    if (error.code === "23505") {
+      return {
+        ok: false,
+        conflict: true,
+        message: "Ya existe un responsable con ese nombre en la sucursal.",
+      };
+    }
+    return { ok: false, conflict: false, message: "No se pudo agregar el responsable." };
   }
-  return data as CrResponsable;
+  return { ok: true, data: data as CrResponsable, reactivated: false };
 }
 
 export async function toggleResponsableActivo(

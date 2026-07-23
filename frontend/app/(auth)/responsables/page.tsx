@@ -58,11 +58,15 @@ export default function ResponsablesPage() {
     setLoading(true);
     const created = await createResponsable(idSucursal, nombre);
     setLoading(false);
-    if (!created) {
-      toast.error("No se pudo agregar el responsable.");
+    if (!created.ok) {
+      toast.error(created.message);
       return;
     }
-    toast.success(`${created.nombre} agregado.`);
+    toast.success(
+      created.reactivated
+        ? `${created.data.nombre} reactivado.`
+        : `${created.data.nombre} agregado.`,
+    );
     setNombre("");
     reload();
   }

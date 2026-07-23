@@ -40,14 +40,18 @@ export async function POST(request: Request) {
     return badRequest("Sucursal y nombre son requeridos.");
   }
 
-  const created = await createResponsable(auth.ctx.supabase, body.id_sucursal, body.nombre);
-  if (!created) {
+  const result = await createResponsable(auth.ctx.supabase, body.id_sucursal, body.nombre);
+  if (!result.ok) {
     return NextResponse.json(
-      { ok: false, message: "No se pudo agregar el responsable." },
-      { status: 500 },
+      { ok: false, message: result.message },
+      { status: result.conflict ? 409 : 500 },
     );
   }
-  return NextResponse.json({ ok: true, data: created });
+  return NextResponse.json({
+    ok: true,
+    data: result.data,
+    reactivated: result.reactivated,
+  });
 }
 
 export async function DELETE(request: Request) {

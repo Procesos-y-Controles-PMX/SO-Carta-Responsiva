@@ -37,10 +37,53 @@ create table if not exists cr_responsables (
   id uuid primary key default gen_random_uuid(),
   id_sucursal uuid not null references cr_sucursales (id) on delete cascade,
   nombre text not null,
+  nombre_normalizado text not null default '',
   activo boolean not null default true,
   created_at timestamptz not null default now(),
   unique (id_sucursal, nombre)
 );
+
+create extension if not exists unaccent with schema extensions;
+
+create or replace function public.cr_normalize_person_name(value text)
+returns text
+language sql
+stable
+parallel safe
+as $$
+  select upper(
+    trim(
+      both from regexp_replace(
+        extensions.unaccent(coalesce(value, '')),
+        '\s+',
+        ' ',
+        'g'
+      )
+    )
+  );
+$$;
+
+create or replace function public.cr_responsables_set_nombre_normalizado()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.nombre := upper(
+    trim(both from regexp_replace(coalesce(new.nombre, ''), '\s+', ' ', 'g'))
+  );
+  new.nombre_normalizado := public.cr_normalize_person_name(new.nombre);
+  return new;
+end;
+$$;
+
+drop trigger if exists cr_responsables_nombre_normalizado_trg on cr_responsables;
+create trigger cr_responsables_nombre_normalizado_trg
+before insert or update of nombre on cr_responsables
+for each row
+execute function public.cr_responsables_set_nombre_normalizado();
+
+create unique index if not exists cr_responsables_sucursal_nombre_norm_uidx
+  on cr_responsables (id_sucursal, nombre_normalizado);
 
 create table if not exists cr_catalogo (
   id uuid primary key default gen_random_uuid(),
