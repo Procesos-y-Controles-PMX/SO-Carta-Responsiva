@@ -3,6 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { jwtVerify, SignJWT } from "jose";
+import { normalizeAccessUser } from "@/lib/access";
 import type { CrUsuario } from "@/lib/types/db";
 
 const SESSION_COOKIE = "cr_server_session";
@@ -53,17 +54,7 @@ export async function getServerSessionUser(): Promise<CrUsuario | null> {
     });
     const user = payload.user as CrUsuario | undefined;
     if (!user?.id || !user.email) return null;
-    const legacyRole = user.rol as string;
-    return {
-      ...user,
-      rol:
-        legacyRole === "admin"
-          ? "administrador_general"
-          : legacyRole === "operador"
-            ? "usuario"
-            : user.rol,
-      region: user.region ?? null,
-    };
+    return normalizeAccessUser(user);
   } catch {
     return null;
   }

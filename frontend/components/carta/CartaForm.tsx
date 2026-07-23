@@ -257,7 +257,7 @@ export default function CartaForm({ mode, initial }: Props) {
           </div>
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-              Mercancía Abordo
+              Material a bordo
             </p>
             <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">
               {mode === "create" ? "Generar carta" : "Detalles de la carta"}

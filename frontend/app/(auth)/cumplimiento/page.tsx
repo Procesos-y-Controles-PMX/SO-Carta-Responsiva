@@ -1,11 +1,11 @@
 "use client";
 
 import { startTransition, useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { Filter } from "lucide-react";
+import { CalendarRange, Filter, MapPin } from "lucide-react";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
 import PageHeader from "@/components/ui/PageHeader";
-import { canViewCompliance } from "@/lib/access";
+import { canViewCompliance, isGeneralAdmin, isZoneAdmin } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import {
   getComplianceReport,
@@ -13,18 +13,22 @@ import {
   sucursalesSinCarta,
   type ComplianceRow,
 } from "@/lib/queries/cumplimiento";
-import { endOfMonth, formatDate, startOfMonth } from "@/lib/utils";
+import {
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  formatDate,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  toDateInputValue,
+} from "@/lib/utils";
 
 type StatusFilter = "all" | "pending" | "ok";
+type PeriodPreset = "day" | "week" | "month" | "custom";
 
 function toIsoStart(date: Date): string {
   return date.toISOString();
-}
-
-function monthInputValue(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
 }
 
 function matchesSearch(haystack: string, query: string): boolean {
@@ -45,23 +49,44 @@ function useIsDesktop() {
   );
 }
 
+function rangeForPreset(preset: PeriodPreset, anchor: Date, customFrom: string, customTo: string) {
+  if (preset === "day") {
+    return { from: startOfDay(anchor), to: endOfDay(anchor) };
+  }
+  if (preset === "week") {
+    return { from: startOfWeek(anchor), to: endOfWeek(anchor) };
+  }
+  if (preset === "month") {
+    return { from: startOfMonth(anchor), to: endOfMonth(anchor) };
+  }
+  const fromDate = customFrom ? startOfDay(new Date(`${customFrom}T00:00:00`)) : startOfMonth(anchor);
+  const toDate = customTo ? endOfDay(new Date(`${customTo}T00:00:00`)) : endOfMonth(anchor);
+  return {
+    from: fromDate <= toDate ? fromDate : toDate,
+    to: fromDate <= toDate ? toDate : fromDate,
+  };
+}
+
 export default function CumplimientoPage() {
   const { user } = useAuth();
   const isDesktop = useIsDesktop();
-  const [month, setMonth] = useState(monthInputValue(new Date()));
+  const [preset, setPreset] = useState<PeriodPreset>("month");
+  const [anchorDate, setAnchorDate] = useState(() => toDateInputValue(new Date()));
+  const [customFrom, setCustomFrom] = useState(() => toDateInputValue(startOfMonth(new Date())));
+  const [customTo, setCustomTo] = useState(() => toDateInputValue(endOfMonth(new Date())));
   const [rows, setRows] = useState<ComplianceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("pending");
   const [region, setRegion] = useState("all");
+  const [sucursalId, setSucursalId] = useState("all");
   const [showResponsables, setShowResponsables] = useState(false);
 
   const range = useMemo(() => {
-    const [y, m] = month.split("-").map(Number);
-    const from = startOfMonth(new Date(y, m - 1, 1));
-    const to = endOfMonth(new Date(y, m - 1, 1));
+    const anchor = new Date(`${anchorDate}T00:00:00`);
+    const { from, to } = rangeForPreset(preset, anchor, customFrom, customTo);
     return { from: toIsoStart(from), to: toIsoStart(to) };
-  }, [month]);
+  }, [preset, anchorDate, customFrom, customTo]);
 
   useEffect(() => {
     if (!user || !canViewCompliance(user)) return;
@@ -75,7 +100,6 @@ export default function CumplimientoPage() {
     });
   }, [user, range.from, range.to]);
 
-  // Mount the heavier responsables table after the sucursal view paints.
   useEffect(() => {
     if (loading || rows.length === 0) return;
     const id = window.setTimeout(() => setShowResponsables(true), 0);
@@ -96,12 +120,36 @@ export default function CumplimientoPage() {
     ];
   }, [rows]);
 
+  const sucursalOptions = useMemo(() => {
+    const scoped = rows.filter((row) => {
+      if (region === "all") return true;
+      return (row.sucursal.region?.trim() ?? "") === region;
+    });
+    return [
+      { value: "all", label: "Todas las sucursales" },
+      ...scoped
+        .map((row) => ({
+          value: row.sucursal.id,
+          label: `${row.sucursal.nombre}${row.sucursal.codigo_sap ? ` / ${row.sucursal.codigo_sap}` : ""}`,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, "es")),
+    ];
+  }, [rows, region]);
+
+  useEffect(() => {
+    if (sucursalId === "all") return;
+    if (!sucursalOptions.some((option) => option.value === sucursalId)) {
+      setSucursalId("all");
+    }
+  }, [sucursalOptions, sucursalId]);
+
   const filteredRows = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("es-MX");
     return rows.filter((row) => {
       if (region !== "all" && (row.sucursal.region?.trim() ?? "") !== region) {
         return false;
       }
+      if (sucursalId !== "all" && row.sucursal.id !== sucursalId) return false;
       if (status === "pending" && row.cartasSucursalEnPeriodo > 0) return false;
       if (status === "ok" && row.cartasSucursalEnPeriodo === 0) return false;
       if (!query) return true;
@@ -109,7 +157,7 @@ export default function CumplimientoPage() {
       if (matchesSearch(row.sucursal.codigo_sap ?? "", query)) return true;
       return row.responsables.some((resp) => matchesSearch(resp.nombre, query));
     });
-  }, [rows, search, status, region]);
+  }, [rows, search, status, region, sucursalId]);
 
   const filteredResponsables = useMemo(() => {
     if (!showResponsables) return [];
@@ -118,6 +166,7 @@ export default function CumplimientoPage() {
       if (region !== "all" && (row.sucursal.region?.trim() ?? "") !== region) {
         return [];
       }
+      if (sucursalId !== "all" && row.sucursal.id !== sucursalId) return [];
       return row.responsables
         .filter((resp) => {
           if (status === "pending" && resp.cartasEnPeriodo > 0) return false;
@@ -131,39 +180,110 @@ export default function CumplimientoPage() {
         })
         .map((resp) => ({ row, resp }));
     });
-  }, [rows, search, status, region, showResponsables]);
+  }, [rows, search, status, region, sucursalId, showResponsables]);
 
-  const sinSucursal = useMemo(() => sucursalesSinCarta(rows), [rows]);
-  const sinResponsable = useMemo(() => responsablesSinCarta(rows), [rows]);
+  const sinSucursal = useMemo(() => sucursalesSinCarta(filteredRows), [filteredRows]);
+  const sinResponsable = useMemo(
+    () => responsablesSinCarta(filteredRows),
+    [filteredRows],
+  );
   const totalCartas = useMemo(
-    () => rows.reduce((sum, r) => sum + r.cartasSucursalEnPeriodo, 0),
-    [rows],
+    () => filteredRows.reduce((sum, r) => sum + r.cartasSucursalEnPeriodo, 0),
+    [filteredRows],
   );
 
   if (!user || !canViewCompliance(user)) {
-    return <p className="text-sm text-slate-500">Acceso restringido a administradores.</p>;
+    return <p className="text-sm text-slate-500">Inicia sesión para consultar el cumplimiento.</p>;
   }
+
+  const branchScoped = !isGeneralAdmin(user) && !isZoneAdmin(user);
+  const subtitle = branchScoped
+    ? "Consulta el cumplimiento de cartas de tu sucursal en el periodo seleccionado."
+    : "Consulta quién generó cartas en el periodo y detecta sucursales pendientes.";
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Supervisión"
         title="Cumplimiento"
-        subtitle="Consulta quién generó cartas en el periodo y detecta sucursales pendientes."
-        actions={
-          <label className="block w-full sm:w-52">
-            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              Periodo
-            </span>
-            <input
-              type="month"
-              className="input-field"
-              value={month}
-              onChange={(event) => setMonth(event.target.value)}
-            />
-          </label>
-        }
+        subtitle={subtitle}
       />
+
+      <div className="card-panel space-y-4 p-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Periodo
+            </label>
+            <FilterSelect
+              value={preset}
+              onChange={(value) => setPreset(value as PeriodPreset)}
+              icon={CalendarRange}
+              searchable={false}
+              options={[
+                { value: "day", label: "Día" },
+                { value: "week", label: "Semana" },
+                { value: "month", label: "Mes" },
+                { value: "custom", label: "Rango personalizado" },
+              ]}
+            />
+          </div>
+          {preset === "custom" ? (
+            <>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Desde
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={customFrom}
+                  onChange={(event) => setCustomFrom(event.target.value)}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Hasta
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={customTo}
+                  onChange={(event) => setCustomTo(event.target.value)}
+                />
+              </div>
+            </>
+          ) : preset === "month" ? (
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Mes
+              </label>
+              <input
+                type="month"
+                className="input-field"
+                value={anchorDate.slice(0, 7)}
+                onChange={(event) => {
+                  const [y, m] = event.target.value.split("-").map(Number);
+                  if (!y || !m) return;
+                  setAnchorDate(toDateInputValue(new Date(y, m - 1, 1)));
+                }}
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {preset === "day" ? "Día" : "Día de la semana"}
+              </label>
+              <input
+                type="date"
+                className="input-field"
+                value={anchorDate}
+                onChange={(event) => setAnchorDate(event.target.value)}
+              />
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card-panel border-l-2 border-l-steel p-5">
@@ -181,7 +301,7 @@ export default function CumplimientoPage() {
       </div>
 
       <div className="card-panel p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
               Buscar
@@ -218,6 +338,20 @@ export default function CumplimientoPage() {
                 onChange={setRegion}
                 searchable="auto"
                 options={regionOptions}
+              />
+            </div>
+          ) : null}
+          {sucursalOptions.length > 1 ? (
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Sucursal
+              </label>
+              <FilterSelect
+                value={sucursalId}
+                onChange={setSucursalId}
+                icon={MapPin}
+                searchable="auto"
+                options={sucursalOptions}
               />
             </div>
           ) : null}

@@ -1,7 +1,9 @@
 import { apiFetch } from "@/lib/api/client";
 import type { CrResponsable } from "@/lib/types/db";
 
-export type ResponsableRow = CrResponsable & { cr_sucursales: { nombre: string } | null };
+export type ResponsableRow = CrResponsable & {
+  cr_sucursales: { id?: string; nombre: string; region?: string | null } | null;
+};
 
 export async function listResponsablesBySucursal(
   idSucursal: string,
@@ -29,10 +31,10 @@ export async function createResponsable(
   return result.ok ? result.data : null;
 }
 
-export async function toggleResponsableActivo(id: string, activo: boolean): Promise<boolean> {
+export async function deleteResponsable(id: string): Promise<boolean> {
   const result = await apiFetch<unknown>("/api/responsables", {
-    method: "PATCH",
-    body: JSON.stringify({ id, activo }),
+    method: "DELETE",
+    body: JSON.stringify({ id }),
   });
   return result.ok;
 }

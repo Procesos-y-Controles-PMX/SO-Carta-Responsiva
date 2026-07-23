@@ -78,16 +78,37 @@ export async function listResponsablesBySucursal(
   return (data as CrResponsable[] | null) ?? [];
 }
 
-export type ResponsableRow = CrResponsable & { cr_sucursales: { nombre: string } | null };
+export type ResponsableRow = CrResponsable & {
+  cr_sucursales: { id?: string; nombre: string; region?: string | null } | null;
+};
 
 export async function listAllResponsables(
   supabase: SupabaseClient,
+  user?: CrUsuario,
 ): Promise<ResponsableRow[]> {
   const { data } = await supabase
     .from("cr_responsables")
-    .select("*, cr_sucursales(nombre)")
+    .select("*, cr_sucursales(id, nombre, region)")
     .order("nombre");
-  return (data as ResponsableRow[] | null) ?? [];
+  const rows = (data as ResponsableRow[] | null) ?? [];
+  if (!user || isGeneralAdmin(user)) return rows;
+
+  const allowed = new Set(
+    (await listSucursalesForUser(supabase, user)).map((s) => s.id),
+  );
+  return rows.filter((row) => allowed.has(row.id_sucursal));
+}
+
+export async function deleteResponsable(
+  supabase: SupabaseClient,
+  id: string,
+): Promise<boolean> {
+  const { error } = await supabase.from("cr_responsables").delete().eq("id", id);
+  if (error) {
+    console.error("deleteResponsable:", error.message);
+    return false;
+  }
+  return true;
 }
 
 export async function createResponsable(
@@ -187,6 +208,161 @@ export async function updateCatalogoItem(
     return null;
   }
   return data as CrCatalogoItem;
+}
+
+export async function replaceCatalogFromImport(
+  supabase: SupabaseClient,
+  items: Array<{
+    centro: string;
+    codigo: string;
+    descripcion: string;
+    unidad_medida: string | null;
+    precio: number;
+  }>,
+  options?: { deactivateMissing?: boolean },
+): Promise<{
+  upserted: number;
+  created: number;
+  updated: number;
+  reactivated: number;
+  deactivated: number;
+  duplicatesCollapsed: number;
+  branches: number;
+  skippedCentros: string[];
+}> {
+  const { data: branches } = await supabase
+    .from("cr_sucursales")
+    .select("id, nombre, codigo_sap")
+    .eq("activo", true);
+  const branchByCentro = new Map<string, { id: string; nombre: string }>();
+  for (const branch of (branches as CrSucursal[] | null) ?? []) {
+    const centro = (branch.codigo_sap ?? "").trim().toUpperCase();
+    if (centro) branchByCentro.set(centro, { id: branch.id, nombre: branch.nombre });
+  }
+
+  // Collapse repeats in the file: same Centro+SKU keeps the last row.
+  const deduped = new Map<string, (typeof items)[number]>();
+  let duplicatesCollapsed = 0;
+  for (const item of items) {
+    const key = `${item.centro}|${item.codigo}`;
+    if (deduped.has(key)) duplicatesCollapsed += 1;
+    deduped.set(key, item);
+  }
+  const uniqueItems = [...deduped.values()];
+
+  const byCentro = new Map<string, typeof uniqueItems>();
+  for (const item of uniqueItems) {
+    const list = byCentro.get(item.centro) ?? [];
+    list.push(item);
+    byCentro.set(item.centro, list);
+  }
+
+  const skippedCentros = [...byCentro.keys()].filter((c) => !branchByCentro.has(c)).sort();
+  const matchedBranchIds = new Set<string>();
+  const importedKeys = new Set<string>();
+  const payloadByBranch = new Map<
+    string,
+    Array<{
+      id_sucursal: string;
+      codigo: string;
+      descripcion: string;
+      unidad_medida: string | null;
+      precio: number;
+      activo: boolean;
+    }>
+  >();
+
+  for (const [centro, centroItems] of byCentro) {
+    const branch = branchByCentro.get(centro);
+    if (!branch) continue;
+    matchedBranchIds.add(branch.id);
+    const payload = centroItems.map((item) => {
+      importedKeys.add(`${branch.id}:${item.codigo}`);
+      return {
+        id_sucursal: branch.id,
+        codigo: item.codigo,
+        descripcion: item.descripcion,
+        unidad_medida: item.unidad_medida,
+        precio: item.precio,
+        activo: true,
+      };
+    });
+    const existing = payloadByBranch.get(branch.id) ?? [];
+    existing.push(...payload);
+    payloadByBranch.set(branch.id, existing);
+  }
+
+  // Existing rows for matched branches — drives created vs updated vs reactivated.
+  const existingByKey = new Map<string, { id: string; activo: boolean }>();
+  if (matchedBranchIds.size > 0) {
+    const { data: existing } = await supabase
+      .from("cr_catalogo")
+      .select("id, id_sucursal, codigo, activo")
+      .in("id_sucursal", [...matchedBranchIds]);
+    for (const row of (existing as CrCatalogoItem[] | null) ?? []) {
+      existingByKey.set(`${row.id_sucursal}:${row.codigo}`, {
+        id: row.id,
+        activo: row.activo,
+      });
+    }
+  }
+
+  let upserted = 0;
+  let created = 0;
+  let updated = 0;
+  let reactivated = 0;
+
+  for (const [, payload] of payloadByBranch) {
+    for (const row of payload) {
+      const prev = existingByKey.get(`${row.id_sucursal}:${row.codigo}`);
+      if (!prev) created += 1;
+      else if (!prev.activo) reactivated += 1;
+      else updated += 1;
+    }
+
+    for (let i = 0; i < payload.length; i += 500) {
+      const batch = payload.slice(i, i + 500);
+      const { error } = await supabase.from("cr_catalogo").upsert(batch, {
+        onConflict: "id_sucursal,codigo",
+        ignoreDuplicates: false,
+      });
+      if (error) {
+        console.error("replaceCatalogFromImport upsert:", error.message);
+        throw new Error(error.message);
+      }
+      upserted += batch.length;
+    }
+  }
+
+  let deactivated = 0;
+  if (options?.deactivateMissing && matchedBranchIds.size > 0) {
+    const toDeactivate = [...existingByKey.entries()]
+      .filter(([key, row]) => row.activo && !importedKeys.has(key))
+      .map(([, row]) => row.id);
+    for (let i = 0; i < toDeactivate.length; i += 500) {
+      const batch = toDeactivate.slice(i, i + 500);
+      const { error } = await supabase
+        .from("cr_catalogo")
+        .update({ activo: false })
+        .in("id", batch);
+      if (error) {
+        console.error("replaceCatalogFromImport deactivate:", error.message);
+        throw new Error(error.message);
+      }
+      deactivated += batch.length;
+    }
+  }
+
+  return {
+    upserted,
+    created,
+    updated,
+    reactivated,
+    deactivated,
+    duplicatesCollapsed,
+    branches: matchedBranchIds.size,
+    skippedCentros,
+  };
 }
 
 export async function listCartas(

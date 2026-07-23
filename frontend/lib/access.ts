@@ -6,6 +6,47 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   administrador_general: "Administrador general",
 };
 
+/** Only these accounts may act as administrador general (Catálogo, Responsables, delete, all sucursales). */
+export const GENERAL_ADMIN_EMAILS = [
+  "fernando.corella@ext.cemex.com", // Inaki
+  "isabela.guzmana@cemex.com", // Isabela
+  "danielalejandro.esparza@cemex.com", // Daniel
+] as const;
+
+const GENERAL_ADMIN_EMAIL_SET = new Set(
+  GENERAL_ADMIN_EMAILS.map((email) => email.toLowerCase()),
+);
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export function isAllowlistedGeneralAdmin(user: Pick<CrUsuario, "email">): boolean {
+  return GENERAL_ADMIN_EMAIL_SET.has(normalizeEmail(user.email));
+}
+
+/**
+ * Effective role for session/UI/permissions.
+ * Non-allowlisted `administrador_general` (or legacy `admin`) are demoted to `usuario`.
+ */
+export function resolveEffectiveRole(user: Pick<CrUsuario, "email" | "rol">): UserRole {
+  if (isAllowlistedGeneralAdmin(user)) return "administrador_general";
+
+  const legacy = user.rol as string;
+  if (legacy === "administrador_zona") return "administrador_zona";
+  if (legacy === "operador") return "usuario";
+  if (legacy === "administrador_general" || legacy === "admin") return "usuario";
+  return "usuario";
+}
+
+export function normalizeAccessUser<T extends CrUsuario>(user: T): T {
+  return {
+    ...user,
+    rol: resolveEffectiveRole(user),
+    region: user.region ?? null,
+  };
+}
+
 export function normalizeRegion(value: string | null | undefined): string {
   return (value ?? "")
     .normalize("NFD")
@@ -16,15 +57,16 @@ export function normalizeRegion(value: string | null | undefined): string {
 }
 
 export function isGeneralAdmin(user: CrUsuario): boolean {
-  return user.rol === "administrador_general";
+  return resolveEffectiveRole(user) === "administrador_general";
 }
 
 export function isZoneAdmin(user: CrUsuario): boolean {
-  return user.rol === "administrador_zona";
+  return resolveEffectiveRole(user) === "administrador_zona";
 }
 
-export function canViewCompliance(user: CrUsuario): boolean {
-  return isGeneralAdmin(user) || isZoneAdmin(user);
+/** Any signed-in user may open Cumplimiento; rows are scoped by sucursal/region. */
+export function canViewCompliance(_user: CrUsuario): boolean {
+  return true;
 }
 
 export function canManageMasterData(user: CrUsuario): boolean {

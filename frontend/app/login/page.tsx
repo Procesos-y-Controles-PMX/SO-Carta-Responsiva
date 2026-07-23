@@ -45,7 +45,7 @@ export default function LoginPage() {
       return;
     }
 
-    toast.success("Acceso de administrador concedido.");
+    toast.success("Sesión iniciada.");
     router.replace("/cartas");
   }
 
@@ -58,7 +58,7 @@ export default function LoginPage() {
             SO Cartas Responsivas
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Mercancía Abordo — generación de cartas responsivas.
+            Material a bordo — generación de cartas responsivas.
           </p>
         </div>
 

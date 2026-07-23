@@ -45,3 +45,44 @@ export async function updateCatalogoItem(
   });
   return result.ok ? result.data : null;
 }
+
+export type CatalogImportResult = {
+  upserted: number;
+  created: number;
+  updated: number;
+  reactivated: number;
+  deactivated: number;
+  duplicatesCollapsed: number;
+  branches: number;
+  skippedCentros: string[];
+  parsed: number;
+  skippedRows: number;
+};
+
+export async function importCatalogoFile(
+  file: File,
+  deactivateMissing = true,
+): Promise<{ ok: true; data: CatalogImportResult } | { ok: false; message: string }> {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("deactivateMissing", deactivateMissing ? "1" : "0");
+
+  try {
+    const response = await fetch("/api/catalogo/import", {
+      method: "POST",
+      body,
+      credentials: "same-origin",
+    });
+    const payload = (await response.json().catch(() => ({}))) as {
+      ok?: boolean;
+      data?: CatalogImportResult;
+      message?: string;
+    };
+    if (!response.ok || payload.ok === false || !payload.data) {
+      return { ok: false, message: payload.message ?? "No se pudo importar el catálogo." };
+    }
+    return { ok: true, data: payload.data };
+  } catch {
+    return { ok: false, message: "No se pudo contactar al servidor." };
+  }
+}

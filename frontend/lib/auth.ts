@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { normalizeAccessUser } from "./access";
 import type { CrUsuario } from "./types/db";
 
 const SESSION_KEY = "cr_session";
 
 function normalizeSessionUser(user: CrUsuario): CrUsuario {
-  const legacyRole = user.rol as string;
-  const rol =
-    legacyRole === "admin"
-      ? "administrador_general"
-      : legacyRole === "operador"
-        ? "usuario"
-        : user.rol;
-  return { ...user, rol, region: user.region ?? null };
+  return normalizeAccessUser(user);
 }
 
 function getSessionStore(): Storage | null {

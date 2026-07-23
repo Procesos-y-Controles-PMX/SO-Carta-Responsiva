@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
+import { normalizeAccessUser } from "@/lib/access";
 import { createSupabaseServerClient, missingSupabaseServerEnv } from "@/lib/supabase-server";
 import { attachServerSession } from "@/lib/server-session";
 import type { CrUsuario } from "@/lib/types/db";
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
       password: _legacyPassword,
       ...user
     } = accessUser;
-    const sessionUser = user as CrUsuario;
+    const sessionUser = normalizeAccessUser(user as CrUsuario);
     const response = NextResponse.json({ ok: true, user: sessionUser });
     await attachServerSession(response, sessionUser);
     return response;

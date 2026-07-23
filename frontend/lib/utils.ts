@@ -63,3 +63,41 @@ export function startOfMonth(date = new Date()): Date {
 export function endOfMonth(date = new Date()): Date {
   return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
 }
+
+/** Monday-start week (ISO-style for operations). */
+export function startOfWeek(date = new Date()): Date {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+export function endOfWeek(date = new Date()): Date {
+  const start = startOfWeek(date);
+  return new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate() + 6,
+    23,
+    59,
+    59,
+    999,
+  );
+}
+
+export function startOfDay(date = new Date()): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
+
+export function endOfDay(date = new Date()): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+export function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}

@@ -70,7 +70,7 @@ export default function DetallesCartaPage() {
           </div>
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-              Mercancía Abordo
+              Material a bordo
             </p>
             <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">
               Detalles de la carta

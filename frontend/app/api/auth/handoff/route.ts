@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { normalizeAccessUser } from "@/lib/access";
 import { attachServerSession } from "@/lib/server-session";
 import type { CrUsuario } from "@/lib/types/db";
 
@@ -26,11 +27,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: "Token de otra aplicación." }, { status: 401 });
     }
 
-    const user = (payload.session as { user?: CrUsuario } | undefined)?.user;
-    if (!user?.id || !user?.email) {
+    const rawUser = (payload.session as { user?: CrUsuario } | undefined)?.user;
+    if (!rawUser?.id || !rawUser?.email) {
       return NextResponse.json({ ok: false, message: "Token inválido." }, { status: 401 });
     }
 
+    const user = normalizeAccessUser(rawUser);
     const response = NextResponse.json({ ok: true, user });
     await attachServerSession(response, user);
     return response;

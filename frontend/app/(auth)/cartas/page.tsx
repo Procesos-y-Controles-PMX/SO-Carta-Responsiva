@@ -49,7 +49,7 @@ export default function CartasHistorialPage() {
         <div className="absolute inset-y-0 right-0 w-52 bg-[linear-gradient(135deg,transparent_40%,rgba(237,28,36,.9)_40%,rgba(237,28,36,.9)_47%,transparent_47%)] opacity-50" />
         <div className="relative max-w-2xl">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand">
-            Mercancía Abordo
+            Material a bordo
           </p>
           <h2 className="mt-1 font-display text-3xl font-semibold uppercase tracking-tight sm:text-4xl">
             Control de cartas responsivas

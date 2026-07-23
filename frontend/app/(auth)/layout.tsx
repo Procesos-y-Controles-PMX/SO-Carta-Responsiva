@@ -40,8 +40,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     () => [
       { label: "Historial", href: "/cartas", icon: <FileClock className="h-[18px] w-[18px]" /> },
       { label: "Nueva carta", href: "/cartas/nueva", icon: <FilePlus2 className="h-[18px] w-[18px]" />, roles: ["usuario", "administrador_general"] },
-      { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
-      { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
+      { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" /> },
+      { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" /> },
       { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
     ],
     []
@@ -158,7 +158,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             squaresClassName="stroke-slate-300/80"
           />
         </div>
-        <header className="app-safe-x sticky top-0 z-30 bg-transparent py-3 lg:py-4">
+        <header className="app-safe-x sticky top-0 z-30 border-b border-slate-200/70 bg-[#f3f6fa]/95 py-3 backdrop-blur-sm lg:py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="truncate font-display text-lg font-semibold tracking-tight text-slate-900 lg:text-xl">
