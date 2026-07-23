@@ -42,7 +42,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       { label: "Nueva carta", href: "/cartas/nueva", icon: <FilePlus2 className="h-[18px] w-[18px]" />, roles: ["usuario", "administrador_general"] },
       { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
       { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
-      { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" />, roles: ["administrador_zona", "administrador_general"] },
+      { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
     ],
     []
   );
@@ -152,7 +152,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             cellSize={40}
             skewY={6}
             wave
-            waveDuration={5}
+            waveDuration={8}
             className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
             squaresClassName="stroke-slate-300/80"
           />
