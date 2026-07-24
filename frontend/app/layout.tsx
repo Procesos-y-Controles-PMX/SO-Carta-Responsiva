@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { IBM_Plex_Sans, Saira_Condensed } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@promexma/ui";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -31,10 +32,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body className={`${plexSans.variable} ${sairaCondensed.variable} min-h-screen font-sans`}>
-        {children}
-        <Toaster richColors position="top-right" />
+        <ThemeProvider>
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
