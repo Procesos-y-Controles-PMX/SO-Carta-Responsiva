@@ -52,16 +52,16 @@ export default function CartaPdfPreviewPage() {
           <TypingAnimation className="text-emerald-400">
             {"> Generando carta responsiva…"}
           </TypingAnimation>
-          <AnimatedSpan className="text-slate-300">
+          <AnimatedSpan className="text-fg-faint">
             Cargando datos del responsable
           </AnimatedSpan>
-          <AnimatedSpan className="text-slate-300">
+          <AnimatedSpan className="text-fg-faint">
             Componiendo documento PDF
           </AnimatedSpan>
-          <AnimatedSpan className="text-slate-300">
+          <AnimatedSpan className="text-fg-faint">
             Aplicando formato Promexma
           </AnimatedSpan>
-          <TypingAnimation className="text-slate-500">
+          <TypingAnimation className="text-fg-subtle">
             Preparando vista previa…
           </TypingAnimation>
         </Terminal>
@@ -104,8 +104,8 @@ export default function CartaPdfPreviewPage() {
       />
 
       <div className="card-panel p-4 text-center md:hidden">
-        <p className="text-sm font-semibold text-slate-800">El PDF está listo</p>
-        <p className="mt-1 text-xs text-slate-500">Ábrelo en una pestaña para verlo con mayor claridad en tu teléfono.</p>
+        <p className="text-sm font-semibold text-fg">El PDF está listo</p>
+        <p className="mt-1 text-xs text-fg-subtle">Ábrelo en una pestaña para verlo con mayor claridad en tu teléfono.</p>
         <a href={pdfUrl} target="_blank" rel="noreferrer" className="btn-secondary mt-4 w-full gap-2">
           <ExternalLink className="h-4 w-4" aria-hidden="true" />
           Abrir PDF

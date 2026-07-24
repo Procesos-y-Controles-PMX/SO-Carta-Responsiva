@@ -84,7 +84,7 @@ export default function CatalogoPage() {
   }, [idSucursal, search]);
 
   if (!user) {
-    return <p className="text-sm text-slate-500">Inicia sesión para consultar el catálogo.</p>;
+    return <p className="text-sm text-fg-subtle">Inicia sesión para consultar el catálogo.</p>;
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -202,7 +202,7 @@ export default function CatalogoPage() {
       <div className="card-panel p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Sucursal
             </label>
             <FilterSelect
@@ -217,7 +217,7 @@ export default function CatalogoPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Buscar
             </label>
             <AnimatedSearchInput
@@ -232,18 +232,18 @@ export default function CatalogoPage() {
       {canEdit ? (
         <div className="card-panel space-y-4 p-5">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Reemplazar catálogo desde archivo</h3>
-            <p className="mt-1 text-xs text-slate-500">
+            <h3 className="text-sm font-semibold text-fg">Reemplazar catálogo desde archivo</h3>
+            <p className="mt-1 text-xs text-fg-subtle">
               Export SAP (TSV/CSV/.XLS) con columnas Centro, SKU, Material, UMB y Precio. Por cada
               sucursal (Centro) + código (SKU): si ya existe se actualiza precio/descripción/U.M. y
               se reactiva; si es nuevo se crea. Filas repetidas en el archivo se colapsan (gana la
               última). Otras sucursales no tocadas no se modifican.
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+          <label className="flex items-center gap-2 text-sm text-fg-strong">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+              className="h-4 w-4 rounded border-line-strong text-brand focus:ring-brand"
               checked={deactivateMissing}
               onChange={(e) => setDeactivateMissing(e.target.checked)}
             />
@@ -273,7 +273,7 @@ export default function CatalogoPage() {
       {canEdit ? (
         <form onSubmit={handleSubmit} className="card-panel space-y-4 p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-fg">
               {editingItem ? `Editar ${editingItem.codigo}` : "Agregar código"}
             </h3>
             {editingItem ? (
@@ -314,10 +314,10 @@ export default function CatalogoPage() {
               required
             />
             {editingItem ? (
-              <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2 lg:col-span-3">
+              <label className="flex items-center gap-2 text-sm text-fg-strong sm:col-span-2 lg:col-span-3">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
+                  className="h-4 w-4 rounded border-line-strong text-brand focus:ring-brand"
                   checked={activo}
                   onChange={(e) => setActivo(e.target.checked)}
                 />
@@ -341,25 +341,25 @@ export default function CatalogoPage() {
       ) : null}
 
       <div className="card-panel overflow-hidden">
-        <div className="divide-y divide-slate-100 md:hidden">
+        <div className="divide-y divide-line-subtle md:hidden">
           {items.map((item) => (
             <article key={item.id} className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">{item.descripcion}</p>
-                  <p className="mt-1 font-mono text-[11px] text-slate-500">
+                  <p className="text-sm font-semibold text-fg">{item.descripcion}</p>
+                  <p className="mt-1 font-mono text-[11px] text-fg-subtle">
                     {item.codigo} · {item.unidad_medida ?? "Sin U.M."}
                   </p>
                 </div>
                 <span
                   className={`rounded-full px-2 py-1 text-[10px] font-semibold ${
-                    item.activo ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                    item.activo ? "bg-emerald-50 text-emerald-700" : "bg-muted-strong text-fg-subtle"
                   }`}
                 >
                   {item.activo ? "Activo" : "Inactivo"}
                 </span>
               </div>
-              <p className="mt-3 text-right text-base font-bold text-slate-900">{money(item.precio)}</p>
+              <p className="mt-3 text-right text-base font-bold text-fg">{money(item.precio)}</p>
               {canEdit ? (
                 <div className="mt-3 flex gap-2">
                   <button
@@ -383,7 +383,7 @@ export default function CatalogoPage() {
           ))}
         </div>
         <table className="hidden w-full text-left text-sm md:table">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-muted text-xs uppercase text-fg-subtle">
             <tr>
               <th className="px-4 py-3">Código</th>
               <th className="px-4 py-3">Descripción</th>
@@ -397,7 +397,7 @@ export default function CatalogoPage() {
             {items.map((item) => (
               <tr
                 key={item.id}
-                className={`border-t border-slate-100 ${editingId === item.id ? "bg-red-50/40" : ""}`}
+                className={`border-t border-line-subtle ${editingId === item.id ? "bg-red-50/40" : ""}`}
               >
                 <td className="px-4 py-3 font-mono text-xs">{item.codigo}</td>
                 <td className="px-4 py-3">{item.descripcion}</td>
@@ -408,7 +408,7 @@ export default function CatalogoPage() {
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <button
                       type="button"
-                      className="mr-3 text-xs font-semibold text-slate-600 hover:underline"
+                      className="mr-3 text-xs font-semibold text-fg-muted hover:underline"
                       onClick={() => startEdit(item)}
                     >
                       Editar

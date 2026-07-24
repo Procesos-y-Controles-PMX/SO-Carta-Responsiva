@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   if (PORTAL_URL) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-slate-50">
+      <main className="flex min-h-dvh items-center justify-center bg-muted">
         <div
           className="h-8 w-8 animate-spin rounded-full border-b-2 border-brand"
           role="status"
@@ -54,17 +54,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md card-panel p-8">
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand">Promexma</p>
-          <h1 className="font-display mt-2 text-2xl font-semibold uppercase tracking-tight text-slate-900">
+          <h1 className="font-display mt-2 text-2xl font-semibold uppercase tracking-tight text-fg">
             SO Cartas Responsivas
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-fg-subtle">
             Material a bordo — generación de cartas responsivas.
           </p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-5">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Correo electrónico
             </label>
             <input
@@ -79,7 +79,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Contraseña
             </label>
             <input

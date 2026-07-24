@@ -93,7 +93,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {!sidebarCollapsed ? (
               <div className="min-w-0">
                 <p className="text-sm font-bold leading-none text-white">Promexma</p>
-                <p className="mt-0.5 truncate text-[10px] font-medium text-slate-500">SO Cartas Responsivas</p>
+                <p className="mt-0.5 truncate text-[10px] font-medium text-fg-subtle">SO Cartas Responsivas</p>
               </div>
             ) : null}
           </Link>
@@ -101,7 +101,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setSidebarCollapsed((current) => !current)}
             className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-slate-400 transition hover:border-slate-500 hover:text-white",
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-fg-faint transition hover:border-slate-500 hover:text-white",
               sidebarCollapsed && "absolute left-[58px]"
             )}
             aria-label={sidebarCollapsed ? "Expandir menú" : "Colapsar menú"}
@@ -120,7 +120,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 sidebarCollapsed && "justify-center",
                 isActive(item.href)
                   ? "bg-gradient-to-br from-brand to-brand-active text-white shadow-[0_2px_8px_-3px_rgba(237,28,36,.7)]"
-                  : "text-slate-400 hover:translate-x-0.5 hover:bg-white/10 hover:text-slate-100"
+                  : "text-fg-faint hover:translate-x-0.5 hover:bg-white/10 hover:text-slate-100"
               )}
             >
               <span className="shrink-0">{item.icon}</span>
@@ -134,10 +134,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {!sidebarCollapsed ? (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-slate-200">{displayName}</p>
-                  <p className="text-[10px] text-slate-500">{roleLabel}</p>
+                  <p className="truncate text-xs font-semibold text-fg-faint">{displayName}</p>
+                  <p className="text-[10px] text-fg-subtle">{roleLabel}</p>
                 </div>
-                <button type="button" onClick={handleLogout} className="rounded-sm p-1.5 text-slate-500 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión">
+                <button type="button" onClick={handleLogout} className="rounded-sm p-1.5 text-fg-subtle hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión">
                   <LogOut className="h-4 w-4" />
                 </button>
               </>
@@ -158,20 +158,20 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             squaresClassName="stroke-slate-300/80"
           />
         </div>
-        <header className="app-safe-x sticky top-0 z-30 border-b border-slate-200/70 bg-[#f3f6fa]/95 py-3 backdrop-blur-sm lg:py-4">
+        <header className="app-safe-x sticky top-0 z-30 border-b border-line/70 bg-canvas/95 py-3 backdrop-blur-sm lg:py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="truncate font-display text-lg font-semibold tracking-tight text-slate-900 lg:text-xl">
+              <h1 className="truncate font-display text-lg font-semibold tracking-tight text-fg lg:text-xl">
                 SO Cartas Responsivas
               </h1>
-              <p className="truncate text-xs text-slate-500 lg:text-sm">
+              <p className="truncate text-xs text-fg-subtle lg:text-sm">
                 {roleLabel}
               </p>
             </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 lg:hidden"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
               aria-label="Cerrar sesión"
             >
               <LogOut className="h-5 w-5" />

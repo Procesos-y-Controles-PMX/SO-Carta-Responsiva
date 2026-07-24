@@ -47,11 +47,11 @@ export default function DetallesCartaPage() {
   }, [id, user]);
 
   if (notFound) {
-    return <p className="text-sm text-slate-500">No se encontró la carta.</p>;
+    return <p className="text-sm text-fg-subtle">No se encontró la carta.</p>;
   }
 
   if (!carta || !initial) {
-    return <p className="text-sm text-slate-500">Cargando carta...</p>;
+    return <p className="text-sm text-fg-subtle">Cargando carta...</p>;
   }
 
   if (canEdit) {
@@ -69,15 +69,15 @@ export default function DetallesCartaPage() {
             <FileText className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-faint">
               Material a bordo
             </p>
             <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">
               Detalles de la carta
             </h2>
-            <p className="mt-1 font-mono text-sm text-slate-300">{carta.folio}</p>
-            <p className="mt-3 inline-flex items-center rounded-sm border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
-              <span className="font-semibold text-slate-400">Generado por:</span>
+            <p className="mt-1 font-mono text-sm text-fg-faint">{carta.folio}</p>
+            <p className="mt-3 inline-flex items-center rounded-sm border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-fg-faint">
+              <span className="font-semibold text-fg-faint">Generado por:</span>
               <span className="ml-1.5 font-medium text-white">{generadoPorLabel(carta)}</span>
             </p>
           </div>
@@ -86,28 +86,28 @@ export default function DetallesCartaPage() {
 
       <section className="card-panel grid gap-4 p-4 sm:grid-cols-3 sm:p-5">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Sucursal</p>
-          <p className="mt-1 text-sm font-semibold text-slate-800">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">Sucursal</p>
+          <p className="mt-1 text-sm font-semibold text-fg">
             {carta.cr_sucursales?.nombre ?? "—"}
           </p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Responsable</p>
-          <p className="mt-1 text-sm font-semibold text-slate-800">{carta.nombre_responsable}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">Responsable</p>
+          <p className="mt-1 text-sm font-semibold text-fg">{carta.nombre_responsable}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Fecha</p>
-          <p className="mt-1 text-sm font-semibold text-slate-800">{formatDate(carta.created_at)}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">Fecha</p>
+          <p className="mt-1 text-sm font-semibold text-fg">{formatDate(carta.created_at)}</p>
         </div>
       </section>
 
       <section className="card-panel overflow-hidden">
-        <div className="border-b border-slate-200 px-4 py-3 sm:px-5">
-          <h3 className="text-sm font-semibold text-slate-900">Productos</h3>
+        <div className="border-b border-line px-4 py-3 sm:px-5">
+          <h3 className="text-sm font-semibold text-fg">Productos</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="bg-muted text-xs uppercase text-fg-subtle">
               <tr>
                 <th className="px-4 py-2.5">Código</th>
                 <th className="px-4 py-2.5">Descripción</th>
@@ -118,7 +118,7 @@ export default function DetallesCartaPage() {
             </thead>
             <tbody>
               {carta.cr_carta_items.map((item) => (
-                <tr key={item.id} className="border-t border-slate-100">
+                <tr key={item.id} className="border-t border-line-subtle">
                   <td className="px-4 py-2.5 font-mono text-xs">{item.codigo}</td>
                   <td className="px-4 py-2.5">{item.descripcion}</td>
                   <td className="px-4 py-2.5 text-right">{item.cantidad}</td>
@@ -131,14 +131,14 @@ export default function DetallesCartaPage() {
             </tbody>
           </table>
         </div>
-        <div className="border-t border-slate-200 bg-slate-50/80 px-4 py-3 text-sm sm:px-5">
+        <div className="border-t border-line bg-muted/80 px-4 py-3 text-sm sm:px-5">
           <div className="ml-auto grid max-w-xs grid-cols-2 gap-x-6 gap-y-1">
-            <span className="text-slate-500">Subtotal</span>
+            <span className="text-fg-subtle">Subtotal</span>
             <span className="text-right font-medium">{money(Number(carta.subtotal))}</span>
-            <span className="text-slate-500">IVA {ivaPct}%</span>
+            <span className="text-fg-subtle">IVA {ivaPct}%</span>
             <span className="text-right font-medium">{money(Number(carta.iva))}</span>
-            <span className="font-semibold text-slate-900">Total</span>
-            <span className="text-right font-bold text-slate-900">{money(Number(carta.total))}</span>
+            <span className="font-semibold text-fg">Total</span>
+            <span className="text-right font-bold text-fg">{money(Number(carta.total))}</span>
           </div>
         </div>
       </section>

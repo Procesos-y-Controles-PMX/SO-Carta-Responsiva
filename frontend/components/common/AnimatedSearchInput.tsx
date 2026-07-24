@@ -32,7 +32,7 @@ export default function AnimatedSearchInput({
     <div className="relative w-full">
       {LeftIcon ? (
         <LeftIcon
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint"
           size={16}
         />
       ) : null}
@@ -47,7 +47,7 @@ export default function AnimatedSearchInput({
         autoFocus={autoFocus}
         className={
           className ??
-          `${FILTER_CONTROL_CLASS} ${LeftIcon ? "pl-9" : "pl-3"} pr-10 placeholder:text-slate-400`
+          `${FILTER_CONTROL_CLASS} ${LeftIcon ? "pl-9" : "pl-3"} pr-10 placeholder:text-fg-faint`
         }
       />
       <div className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2">
@@ -61,9 +61,9 @@ export default function AnimatedSearchInput({
             className="inline-flex"
           >
             {hasQuery ? (
-              <Send className="h-4 w-4 text-slate-400" />
+              <Send className="h-4 w-4 text-fg-faint" />
             ) : (
-              <Search className="h-4 w-4 text-slate-400" />
+              <Search className="h-4 w-4 text-fg-faint" />
             )}
           </motion.span>
         </AnimatePresence>

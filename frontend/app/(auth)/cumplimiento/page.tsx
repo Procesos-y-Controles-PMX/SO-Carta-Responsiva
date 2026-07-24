@@ -193,7 +193,7 @@ export default function CumplimientoPage() {
   );
 
   if (!user || !canViewCompliance(user)) {
-    return <p className="text-sm text-slate-500">Inicia sesión para consultar el cumplimiento.</p>;
+    return <p className="text-sm text-fg-subtle">Inicia sesión para consultar el cumplimiento.</p>;
   }
 
   const branchScoped = !isGeneralAdmin(user) && !isZoneAdmin(user);
@@ -212,7 +212,7 @@ export default function CumplimientoPage() {
       <div className="card-panel space-y-4 p-5">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Periodo
             </label>
             <FilterSelect
@@ -231,7 +231,7 @@ export default function CumplimientoPage() {
           {preset === "custom" ? (
             <>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                   Desde
                 </label>
                 <input
@@ -242,7 +242,7 @@ export default function CumplimientoPage() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                   Hasta
                 </label>
                 <input
@@ -255,7 +255,7 @@ export default function CumplimientoPage() {
             </>
           ) : preset === "month" ? (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                 Mes
               </label>
               <input
@@ -271,7 +271,7 @@ export default function CumplimientoPage() {
             </div>
           ) : (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                 {preset === "day" ? "Día" : "Día de la semana"}
               </label>
               <input
@@ -287,15 +287,15 @@ export default function CumplimientoPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="card-panel border-l-2 border-l-steel p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">Cartas generadas</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{totalCartas}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-fg-subtle">Cartas generadas</p>
+          <p className="mt-1 text-2xl font-semibold text-fg">{totalCartas}</p>
         </div>
         <div className="card-panel border-l-2 border-l-brand p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">Sucursales sin carta</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-fg-subtle">Sucursales sin carta</p>
           <p className="mt-1 text-2xl font-semibold text-red-600">{sinSucursal.length}</p>
         </div>
         <div className="card-panel border-l-2 border-l-amber-500 p-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500">Responsables sin carta</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-fg-subtle">Responsables sin carta</p>
           <p className="mt-1 text-2xl font-semibold text-amber-600">{sinResponsable.length}</p>
         </div>
       </div>
@@ -303,7 +303,7 @@ export default function CumplimientoPage() {
       <div className="card-panel p-5">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Buscar
             </label>
             <AnimatedSearchInput
@@ -313,7 +313,7 @@ export default function CumplimientoPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Estado
             </label>
             <FilterSelect
@@ -330,7 +330,7 @@ export default function CumplimientoPage() {
           </div>
           {regionOptions.length > 1 ? (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                 Región
               </label>
               <FilterSelect
@@ -343,7 +343,7 @@ export default function CumplimientoPage() {
           ) : null}
           {sucursalOptions.length > 1 ? (
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
                 Sucursal
               </label>
               <FilterSelect
@@ -359,23 +359,23 @@ export default function CumplimientoPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Cargando reporte...</p>
+        <p className="text-sm text-fg-subtle">Cargando reporte...</p>
       ) : (
         <>
           <div className="card-panel overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
-              <h3 className="text-sm font-semibold text-slate-900">Por sucursal</h3>
-              <p className="text-xs text-slate-500">
+            <div className="flex items-center justify-between gap-3 border-b border-line-subtle px-5 py-3">
+              <h3 className="text-sm font-semibold text-fg">Por sucursal</h3>
+              <p className="text-xs text-fg-subtle">
                 {filteredRows.length} de {rows.length}
               </p>
             </div>
             {filteredRows.length === 0 ? (
-              <p className="px-5 py-8 text-center text-sm text-slate-500">
+              <p className="px-5 py-8 text-center text-sm text-fg-subtle">
                 No hay sucursales que coincidan con los filtros.
               </p>
             ) : isDesktop ? (
               <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <thead className="bg-muted text-xs uppercase text-fg-subtle">
                   <tr>
                     <th className="px-4 py-3">Sucursal</th>
                     <th className="px-4 py-3">Cartas en periodo</th>
@@ -384,7 +384,7 @@ export default function CumplimientoPage() {
                 </thead>
                 <tbody>
                   {filteredRows.map((row) => (
-                    <tr key={row.sucursal.id} className="border-t border-slate-100">
+                    <tr key={row.sucursal.id} className="border-t border-line-subtle">
                       <td className="px-4 py-3">{row.sucursal.nombre}</td>
                       <td className="px-4 py-3">{row.cartasSucursalEnPeriodo}</td>
                       <td className="px-4 py-3">
@@ -399,12 +399,12 @@ export default function CumplimientoPage() {
                 </tbody>
               </table>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-line-subtle">
                 {filteredRows.map((row) => (
                   <article key={row.sucursal.id} className="flex items-center justify-between gap-4 p-4">
                     <div>
-                      <p className="text-sm font-semibold text-slate-800">{row.sucursal.nombre}</p>
-                      <p className="text-xs text-slate-500">{row.cartasSucursalEnPeriodo} cartas en el periodo</p>
+                      <p className="text-sm font-semibold text-fg">{row.sucursal.nombre}</p>
+                      <p className="text-xs text-fg-subtle">{row.cartasSucursalEnPeriodo} cartas en el periodo</p>
                     </div>
                     <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${row.cartasSucursalEnPeriodo === 0 ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
                       {row.cartasSucursalEnPeriodo === 0 ? "Pendiente" : "Cumple"}
@@ -416,21 +416,21 @@ export default function CumplimientoPage() {
           </div>
 
           <div className="card-panel overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
-              <h3 className="text-sm font-semibold text-slate-900">Por responsable</h3>
-              <p className="text-xs text-slate-500">
+            <div className="flex items-center justify-between gap-3 border-b border-line-subtle px-5 py-3">
+              <h3 className="text-sm font-semibold text-fg">Por responsable</h3>
+              <p className="text-xs text-fg-subtle">
                 {showResponsables ? `${filteredResponsables.length} resultados` : "Cargando..."}
               </p>
             </div>
             {!showResponsables ? (
-              <p className="px-5 py-8 text-center text-sm text-slate-500">Preparando detalle por responsable...</p>
+              <p className="px-5 py-8 text-center text-sm text-fg-subtle">Preparando detalle por responsable...</p>
             ) : filteredResponsables.length === 0 ? (
-              <p className="px-5 py-8 text-center text-sm text-slate-500">
+              <p className="px-5 py-8 text-center text-sm text-fg-subtle">
                 No hay responsables que coincidan con los filtros.
               </p>
             ) : isDesktop ? (
               <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <thead className="bg-muted text-xs uppercase text-fg-subtle">
                   <tr>
                     <th className="px-4 py-3">Sucursal</th>
                     <th className="px-4 py-3">Responsable</th>
@@ -440,7 +440,7 @@ export default function CumplimientoPage() {
                 </thead>
                 <tbody>
                   {filteredResponsables.map(({ row, resp }) => (
-                    <tr key={resp.id} className="border-t border-slate-100">
+                    <tr key={resp.id} className="border-t border-line-subtle">
                       <td className="px-4 py-3">{row.sucursal.nombre}</td>
                       <td className="px-4 py-3">{resp.nombre}</td>
                       <td className="px-4 py-3">
@@ -458,19 +458,19 @@ export default function CumplimientoPage() {
                 </tbody>
               </table>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-line-subtle">
                 {filteredResponsables.map(({ row, resp }) => (
                   <article key={resp.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-slate-800">{resp.nombre}</p>
-                        <p className="text-xs text-slate-500">{row.sucursal.nombre}</p>
+                        <p className="text-sm font-semibold text-fg">{resp.nombre}</p>
+                        <p className="text-xs text-fg-subtle">{row.sucursal.nombre}</p>
                       </div>
-                      <span className={`text-sm font-bold ${resp.cartasEnPeriodo === 0 ? "text-red-600" : "text-slate-900"}`}>
+                      <span className={`text-sm font-bold ${resp.cartasEnPeriodo === 0 ? "text-red-600" : "text-fg"}`}>
                         {resp.cartasEnPeriodo}
                       </span>
                     </div>
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-2 text-xs text-fg-subtle">
                       Última carta: {resp.ultimaCarta ? formatDate(resp.ultimaCarta) : "Sin registro"}
                     </p>
                   </article>

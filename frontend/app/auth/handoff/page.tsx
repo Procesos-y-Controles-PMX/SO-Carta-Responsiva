@@ -50,7 +50,7 @@ function HandoffInner() {
   const portalUrl = process.env.NEXT_PUBLIC_PORTAL_URL;
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-6">
+    <main className="flex min-h-dvh items-center justify-center bg-muted px-6">
       {error ? (
         <div className="w-full max-w-sm rounded-lg border border-red-200 bg-red-50 p-5 text-center">
           <AlertCircle aria-hidden="true" className="mx-auto mb-2 h-6 w-6 text-red-600" />
@@ -69,7 +69,7 @@ function HandoffInner() {
             role="status"
             aria-label="Cargando"
           />
-          <p className="text-sm text-slate-500">Entrando a SO Cartas Responsivas...</p>
+          <p className="text-sm text-fg-subtle">Entrando a SO Cartas Responsivas...</p>
         </div>
       )}
     </main>

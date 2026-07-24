@@ -45,7 +45,7 @@ export default function ResponsablesPage() {
   }, [rows, filterSucursal]);
 
   if (!user) {
-    return <p className="text-sm text-slate-500">Inicia sesión para consultar responsables.</p>;
+    return <p className="text-sm text-fg-subtle">Inicia sesión para consultar responsables.</p>;
   }
 
   async function handleAdd(event: FormEvent) {
@@ -96,7 +96,7 @@ export default function ResponsablesPage() {
       />
 
       <div className="card-panel p-5">
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
           Filtrar por sucursal
         </label>
         <FilterSelect
@@ -120,7 +120,7 @@ export default function ResponsablesPage() {
           className="card-panel flex flex-col gap-4 p-5 sm:flex-row sm:items-end"
         >
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Sucursal
             </label>
             <FilterSelect
@@ -135,7 +135,7 @@ export default function ResponsablesPage() {
             />
           </div>
           <div className="flex-[2]">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-fg-subtle">
               Nombre del responsable
             </label>
             <input
@@ -154,10 +154,10 @@ export default function ResponsablesPage() {
       ) : null}
 
       <div className="card-panel overflow-hidden">
-        <div className="divide-y divide-slate-100 md:hidden">
+        <div className="divide-y divide-line-subtle md:hidden">
           {filteredRows.map((row) => (
             <article key={row.id} className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted-strong text-sm font-bold text-fg-muted">
                 {row.nombre
                   .split(" ")
                   .map((part) => part[0])
@@ -166,8 +166,8 @@ export default function ResponsablesPage() {
                   .toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-800">{row.nombre}</p>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-sm font-semibold text-fg">{row.nombre}</p>
+                <p className="text-xs text-fg-subtle">
                   {row.cr_sucursales?.nombre ?? "Sin sucursal"}
                   {row.activo ? "" : " · Inactivo"}
                 </p>
@@ -184,13 +184,13 @@ export default function ResponsablesPage() {
             </article>
           ))}
           {filteredRows.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-500">
+            <p className="px-4 py-8 text-center text-sm text-fg-subtle">
               No hay responsables para el filtro seleccionado.
             </p>
           ) : null}
         </div>
         <table className="hidden w-full text-left text-sm md:table">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-muted text-xs uppercase text-fg-subtle">
             <tr>
               <th className="px-4 py-3">Sucursal</th>
               <th className="px-4 py-3">Nombre</th>
@@ -200,7 +200,7 @@ export default function ResponsablesPage() {
           </thead>
           <tbody>
             {filteredRows.map((row) => (
-              <tr key={row.id} className="border-t border-slate-100">
+              <tr key={row.id} className="border-t border-line-subtle">
                 <td className="px-4 py-3">{row.cr_sucursales?.nombre ?? "—"}</td>
                 <td className="px-4 py-3">{row.nombre}</td>
                 <td className="px-4 py-3">{row.activo ? "Activo" : "Inactivo"}</td>
@@ -221,7 +221,7 @@ export default function ResponsablesPage() {
               <tr>
                 <td
                   colSpan={canEdit ? 4 : 3}
-                  className="px-4 py-8 text-center text-sm text-slate-500"
+                  className="px-4 py-8 text-center text-sm text-fg-subtle"
                 >
                   No hay responsables para el filtro seleccionado.
                 </td>

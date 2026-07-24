@@ -244,7 +244,7 @@ export default function CartaForm({ mode, initial }: Props) {
   }
 
   if (user && !(mode === "create" ? canGenerateCartas(user) : canEditCartas(user))) {
-    return <p className="text-sm text-slate-500">Tu acceso es únicamente de consulta.</p>;
+    return <p className="text-sm text-fg-subtle">Tu acceso es únicamente de consulta.</p>;
   }
 
   return (
@@ -256,23 +256,23 @@ export default function CartaForm({ mode, initial }: Props) {
             <FileText className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fg-faint">
               Material a bordo
             </p>
             <h2 className="font-display text-2xl font-semibold uppercase tracking-tight">
               {mode === "create" ? "Generar carta" : "Detalles de la carta"}
             </h2>
             {mode === "edit" && initial?.folio ? (
-              <p className="mt-1 font-mono text-sm text-slate-300">{initial.folio}</p>
+              <p className="mt-1 font-mono text-sm text-fg-faint">{initial.folio}</p>
             ) : null}
-            <p className="mt-1 max-w-xl text-sm text-slate-400">
+            <p className="mt-1 max-w-xl text-sm text-fg-faint">
               {mode === "create"
                 ? "Selecciona al responsable y el material que saldrá de la sucursal. El folio y el registro se crean automáticamente."
                 : "Revisa o ajusta el responsable y los productos. Al guardar se actualiza el PDF."}
             </p>
             {mode === "edit" && initial?.generadoPor ? (
-              <p className="mt-3 inline-flex items-center rounded-sm border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
-                <span className="font-semibold text-slate-400">Generado por:</span>
+              <p className="mt-3 inline-flex items-center rounded-sm border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-fg-faint">
+                <span className="font-semibold text-fg-faint">Generado por:</span>
                 <span className="ml-1.5 font-medium text-white">{initial.generadoPor}</span>
               </p>
             ) : null}
@@ -283,7 +283,7 @@ export default function CartaForm({ mode, initial }: Props) {
       <section className="card-panel p-4 sm:p-5">
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
               Sucursal
             </span>
             <FilterSelect
@@ -303,7 +303,7 @@ export default function CartaForm({ mode, initial }: Props) {
             />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-subtle">
               Responsable que recibe el material
             </span>
             <FilterSelect
@@ -323,11 +323,11 @@ export default function CartaForm({ mode, initial }: Props) {
 
       <div className="grid min-h-[540px] gap-5 xl:grid-cols-[minmax(320px,0.78fr)_minmax(560px,1.5fr)]">
         <section className="card-panel flex min-h-0 flex-col overflow-hidden">
-          <div className="border-b border-slate-200 bg-slate-50/80 px-4 py-4">
+          <div className="border-b border-line bg-muted/80 px-4 py-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-brand">
               Inventario de sucursal
             </p>
-            <h3 className="mt-0.5 font-display text-lg font-semibold text-slate-900">
+            <h3 className="mt-0.5 font-display text-lg font-semibold text-fg">
               Buscar material
             </h3>
             <div className="mt-3">
@@ -343,22 +343,22 @@ export default function CartaForm({ mode, initial }: Props) {
             {catalogo.map((item) => (
               <article
                 key={item.id}
-                className="group border-b border-slate-100 px-4 py-3 transition-colors hover:bg-slate-50"
+                className="group border-b border-line-subtle px-4 py-3 transition-colors hover:bg-muted"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="line-clamp-2 text-sm font-semibold leading-snug text-slate-800">
+                    <p className="line-clamp-2 text-sm font-semibold leading-snug text-fg">
                       {item.descripcion}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-subtle">
                       <span className="font-mono text-[11px]">{item.codigo}</span>
                       <span>{item.unidad_medida ?? "Sin U.M."}</span>
-                      <span className="font-medium text-slate-700">{money(item.precio)}</span>
+                      <span className="font-medium text-fg-strong">{money(item.precio)}</span>
                     </div>
                   </div>
                   <button
                     type="button"
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-slate-200 bg-white text-brand shadow-sm transition-all hover:border-brand hover:bg-brand hover:text-white"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-line bg-card text-brand shadow-sm transition-all hover:border-brand hover:bg-brand hover:text-white"
                     onClick={() => addProductFromCatalog(item)}
                     aria-label={`Agregar ${item.descripcion}`}
                   >
@@ -369,9 +369,9 @@ export default function CartaForm({ mode, initial }: Props) {
             ))}
             {catalogo.length === 0 && (
               <div className="flex flex-col items-center px-6 py-12 text-center">
-                <PackageOpen className="h-8 w-8 text-slate-300" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium text-slate-700">No encontramos materiales</p>
-                <p className="mt-1 text-xs text-slate-500">
+                <PackageOpen className="h-8 w-8 text-fg-faint" aria-hidden="true" />
+                <p className="mt-3 text-sm font-medium text-fg-strong">No encontramos materiales</p>
+                <p className="mt-1 text-xs text-fg-subtle">
                   {user && canManageMasterData(user) ? (
                     <Link href="/catalogo" className="font-semibold text-brand hover:underline">
                       Agregar un código al catálogo
@@ -386,9 +386,9 @@ export default function CartaForm({ mode, initial }: Props) {
         </section>
 
         <section className="card-panel flex min-h-0 flex-col overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-200 bg-[#343d48] px-4 py-3 text-white">
+          <div className="flex items-center justify-between border-b border-line bg-[#343d48] px-4 py-3 text-white">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-fg-faint">
                 Salida de material
               </p>
               <h3 className="font-display text-lg font-semibold">Productos seleccionados</h3>
@@ -401,19 +401,19 @@ export default function CartaForm({ mode, initial }: Props) {
           <div className="flex-1 overflow-x-auto">
             {lines.some((line) => line.codigo) ? (
               <>
-                <div className="divide-y divide-slate-100 md:hidden">
+                <div className="divide-y divide-line-subtle md:hidden">
                   {lines.filter((line) => line.codigo).map((line) => (
                     <article key={line.key} className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold leading-snug text-slate-800">{line.descripcion}</p>
-                          <p className="mt-1 font-mono text-[11px] text-slate-500">
+                          <p className="text-sm font-semibold leading-snug text-fg">{line.descripcion}</p>
+                          <p className="mt-1 font-mono text-[11px] text-fg-subtle">
                             {line.codigo} · {line.unidad_medida ?? "Sin U.M."}
                           </p>
                         </div>
                         <button
                           type="button"
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-slate-400 active:bg-red-50 active:text-red-600"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-fg-faint active:bg-red-50 active:text-red-600"
                           onClick={() => removeLine(line.key)}
                           aria-label={`Quitar ${line.descripcion}`}
                         >
@@ -422,7 +422,7 @@ export default function CartaForm({ mode, initial }: Props) {
                       </div>
                       <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
                         <label>
-                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Cantidad</span>
+                          <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-fg-subtle">Cantidad</span>
                           <input
                             aria-label={`Cantidad de ${line.descripcion}`}
                             inputMode="decimal"
@@ -432,15 +432,15 @@ export default function CartaForm({ mode, initial }: Props) {
                           />
                         </label>
                         <div className="pb-1 text-right">
-                          <p className="text-[10px] uppercase tracking-wider text-slate-400">{money(line.precio)} c/u</p>
-                          <p className="text-base font-bold text-slate-900">{money(line.cantidad * line.precio)}</p>
+                          <p className="text-[10px] uppercase tracking-wider text-fg-faint">{money(line.precio)} c/u</p>
+                          <p className="text-base font-bold text-fg">{money(line.cantidad * line.precio)}</p>
                         </div>
                       </div>
                     </article>
                   ))}
                 </div>
                 <table className="hidden w-full min-w-[650px] text-left text-sm md:table">
-                <thead className="border-b border-slate-200 bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+                <thead className="border-b border-line bg-muted text-[10px] uppercase tracking-wider text-fg-subtle">
                   <tr>
                     <th className="px-4 py-2.5">Producto</th>
                     <th className="px-3 py-2.5">SKU / U.M.</th>
@@ -452,13 +452,13 @@ export default function CartaForm({ mode, initial }: Props) {
                 </thead>
                 <tbody>
                   {lines.filter((line) => line.codigo).map((line) => (
-                    <tr key={line.key} className="border-b border-slate-100 align-middle">
-                      <td className="max-w-[230px] px-4 py-3 font-medium text-slate-800">
+                    <tr key={line.key} className="border-b border-line-subtle align-middle">
+                      <td className="max-w-[230px] px-4 py-3 font-medium text-fg">
                         {line.descripcion}
                       </td>
                       <td className="px-3 py-3">
-                        <span className="block font-mono text-[11px] text-slate-600">{line.codigo}</span>
-                        <span className="text-[11px] text-slate-400">{line.unidad_medida ?? "—"}</span>
+                        <span className="block font-mono text-[11px] text-fg-muted">{line.codigo}</span>
+                        <span className="text-[11px] text-fg-faint">{line.unidad_medida ?? "—"}</span>
                       </td>
                       <td className="px-3 py-3">
                         <input
@@ -469,16 +469,16 @@ export default function CartaForm({ mode, initial }: Props) {
                           onChange={(event) => updateQuantity(line.key, event.target.value)}
                         />
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3 text-right text-slate-600">
+                      <td className="whitespace-nowrap px-3 py-3 text-right text-fg-muted">
                         {money(line.precio)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3 text-right font-semibold text-slate-900">
+                      <td className="whitespace-nowrap px-3 py-3 text-right font-semibold text-fg">
                         {money(line.cantidad * line.precio)}
                       </td>
                       <td className="px-2 py-3">
                         <button
                           type="button"
-                          className="rounded-sm p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                          className="rounded-sm p-2 text-fg-faint transition-colors hover:bg-red-50 hover:text-red-600"
                           onClick={() => removeLine(line.key)}
                           aria-label={`Quitar ${line.descripcion}`}
                         >
@@ -492,25 +492,25 @@ export default function CartaForm({ mode, initial }: Props) {
               </>
             ) : (
               <div className="flex h-full min-h-64 flex-col items-center justify-center px-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                  <PackageOpen className="h-6 w-6 text-slate-400" aria-hidden="true" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted-strong">
+                  <PackageOpen className="h-6 w-6 text-fg-faint" aria-hidden="true" />
                 </div>
-                <p className="mt-4 text-sm font-semibold text-slate-800">La carta está vacía</p>
-                <p className="mt-1 max-w-xs text-xs leading-relaxed text-slate-500">
+                <p className="mt-4 text-sm font-semibold text-fg">La carta está vacía</p>
+                <p className="mt-1 max-w-xs text-xs leading-relaxed text-fg-subtle">
                   Busca un SKU en el catálogo y usa el botón + para agregarlo a la salida.
                 </p>
               </div>
             )}
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50/80 px-4 py-4 sm:px-5">
+          <div className="border-t border-line bg-muted/80 px-4 py-4 sm:px-5">
             <div className="ml-auto grid max-w-sm grid-cols-2 gap-x-8 gap-y-1 text-sm">
-              <span className="text-slate-500">Subtotal</span>
-              <span className="text-right font-medium text-slate-800">{money(subtotal)}</span>
-              <span className="text-slate-500">IVA {ivaPorcentaje}%</span>
-              <span className="text-right font-medium text-slate-800">{money(iva)}</span>
-              <span className="border-t border-slate-300 pt-2 font-semibold text-slate-900">Total</span>
-              <span className="border-t border-slate-300 pt-2 text-right text-lg font-bold text-slate-900">
+              <span className="text-fg-subtle">Subtotal</span>
+              <span className="text-right font-medium text-fg">{money(subtotal)}</span>
+              <span className="text-fg-subtle">IVA {ivaPorcentaje}%</span>
+              <span className="text-right font-medium text-fg">{money(iva)}</span>
+              <span className="border-t border-line-strong pt-2 font-semibold text-fg">Total</span>
+              <span className="border-t border-line-strong pt-2 text-right text-lg font-bold text-fg">
                 {money(total)}
               </span>
             </div>

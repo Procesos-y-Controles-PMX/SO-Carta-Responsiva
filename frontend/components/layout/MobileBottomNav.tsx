@@ -24,7 +24,7 @@ export default function MobileBottomNav({ items }: { items: MobileNavItem[] }) {
             href={item.href}
             className={cn(
               "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-semibold leading-tight transition-colors",
-              item.active ? "text-white" : "text-slate-400 active:text-slate-200"
+              item.active ? "text-white" : "text-fg-faint active:text-fg-faint"
             )}
             aria-current={item.active ? "page" : undefined}
           >

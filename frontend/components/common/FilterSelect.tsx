@@ -75,13 +75,13 @@ const FilterSelect = memo(function FilterSelect({
       >
         {Icon ? (
           <Icon
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-faint"
             size={16}
           />
         ) : null}
         <span className="truncate">{selectedLabel}</span>
         <ChevronDown
-          className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-transform ${
+          className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-fg-faint transition-transform ${
             open ? "rotate-180" : ""
           }`}
           size={16}
@@ -89,19 +89,19 @@ const FilterSelect = memo(function FilterSelect({
       </button>
       <AnimatedFilterDropdown open={open && !disabled} className="overflow-hidden" maxHeightClass="max-h-none">
         {showSearch ? (
-          <div className="border-b border-slate-100 p-2">
+          <div className="border-b border-line-subtle p-2">
             <AnimatedSearchInput
               value={query}
               onChange={setQuery}
               placeholder="Buscar..."
               autoFocus
-              className="h-8 w-full rounded-sm border border-slate-200 bg-white px-2 pr-9 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="h-8 w-full rounded-sm border border-line bg-card px-2 pr-9 text-sm text-fg outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
           </div>
         ) : null}
         <div className="max-h-52 overflow-y-auto">
           {filteredOptions.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-slate-600">Sin coincidencias</p>
+            <p className="px-3 py-2 text-sm text-fg-muted">Sin coincidencias</p>
           ) : (
             filteredOptions.map((option) => {
               const selected = option.value === value;
@@ -115,13 +115,13 @@ const FilterSelect = memo(function FilterSelect({
                       setOpen(false);
                       setQuery("");
                     }}
-                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 ${
-                      selected ? "bg-red-50 font-medium text-brand" : "text-slate-700"
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted ${
+                      selected ? "bg-red-50 font-medium text-brand" : "text-fg-strong"
                     }`}
                   >
                     <span
                       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                        selected ? "border-brand bg-brand text-white" : "border-slate-300"
+                        selected ? "border-brand bg-brand text-white" : "border-line-strong"
                       }`}
                     >
                       {selected ? <Check size={10} /> : null}

@@ -54,7 +54,7 @@ export default function CartasHistorialPage() {
           <h2 className="mt-1 font-display text-3xl font-semibold uppercase tracking-tight sm:text-4xl">
             Control de cartas responsivas
           </h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-fg-faint">
             Registra la salida de material, genera el documento para firma y conserva cada folio
             en un solo lugar.
           </p>
@@ -73,33 +73,33 @@ export default function CartasHistorialPage() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">
               Acción principal
             </p>
-            <h3 className="font-display text-xl font-semibold text-slate-900">Generar carta</h3>
-            <p className="text-xs text-slate-500">Selecciona responsable, productos y cantidades.</p>
+            <h3 className="font-display text-xl font-semibold text-fg">Generar carta</h3>
+            <p className="text-xs text-fg-subtle">Selecciona responsable, productos y cantidades.</p>
           </div>
-          <ArrowRight className="h-5 w-5 text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand" />
+          <ArrowRight className="h-5 w-5 text-fg-faint transition-transform group-hover:translate-x-1 group-hover:text-brand" />
         </Link>
       ) : null}
 
       <section className="card-panel overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-fg-subtle">
               Registro automático
             </p>
-            <h3 className="font-display text-lg font-semibold text-slate-900">Cartas recientes</h3>
+            <h3 className="font-display text-lg font-semibold text-fg">Cartas recientes</h3>
           </div>
-          <FileText className="h-5 w-5 text-slate-300" aria-hidden="true" />
+          <FileText className="h-5 w-5 text-fg-faint" aria-hidden="true" />
         </div>
         {loading ? (
-          <p className="p-6 text-sm text-slate-500">Cargando...</p>
+          <p className="p-6 text-sm text-fg-subtle">Cargando...</p>
         ) : rows.length === 0 ? (
           <div className="px-6 py-10 text-center">
-            <p className="text-sm font-medium text-slate-700">Aún no hay cartas registradas</p>
-            <p className="mt-1 text-xs text-slate-500">La primera aparecerá aquí al generar su PDF.</p>
+            <p className="text-sm font-medium text-fg-strong">Aún no hay cartas registradas</p>
+            <p className="mt-1 text-xs text-fg-subtle">La primera aparecerá aquí al generar su PDF.</p>
           </div>
         ) : (
           <>
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-line-subtle md:hidden">
               {rows.map((row) => {
                 const actionCols = 2 + (canDelete ? 1 : 0);
                 return (
@@ -107,14 +107,14 @@ export default function CartasHistorialPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate font-mono text-[11px] font-semibold text-brand">{row.folio}</p>
-                      <p className="mt-1 text-sm font-semibold text-slate-800">{row.nombre_responsable}</p>
-                      <p className="text-xs text-slate-500">{row.cr_sucursales?.nombre ?? "Sin sucursal"} · {formatDate(row.created_at)}</p>
-                      <p className="mt-1.5 text-[11px] text-slate-500">
-                        <span className="font-semibold text-slate-600">Generado por:</span>{" "}
+                      <p className="mt-1 text-sm font-semibold text-fg">{row.nombre_responsable}</p>
+                      <p className="text-xs text-fg-subtle">{row.cr_sucursales?.nombre ?? "Sin sucursal"} · {formatDate(row.created_at)}</p>
+                      <p className="mt-1.5 text-[11px] text-fg-subtle">
+                        <span className="font-semibold text-fg-muted">Generado por:</span>{" "}
                         {generadoPorLabel(row)}
                       </p>
                     </div>
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-slate-600">
+                    <span className="rounded-full bg-muted-strong px-2 py-1 text-[10px] font-semibold text-fg-muted">
                       {row.cr_carta_items.length} productos
                     </span>
                   </div>
@@ -142,7 +142,7 @@ export default function CartasHistorialPage() {
             </div>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-muted text-xs uppercase text-fg-subtle">
                 <tr>
                   <th className="px-4 py-3">Folio</th>
                   <th className="px-4 py-3">Sucursal</th>
@@ -155,11 +155,11 @@ export default function CartasHistorialPage() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-slate-100">
+                  <tr key={row.id} className="border-t border-line-subtle">
                     <td className="px-4 py-3 font-mono text-xs">{row.folio}</td>
                     <td className="px-4 py-3">{row.cr_sucursales?.nombre ?? "—"}</td>
                     <td className="px-4 py-3">{row.nombre_responsable}</td>
-                    <td className="px-4 py-3 text-slate-600">{generadoPorLabel(row)}</td>
+                    <td className="px-4 py-3 text-fg-muted">{generadoPorLabel(row)}</td>
                     <td className="px-4 py-3">{formatDate(row.created_at)}</td>
                     <td className="px-4 py-3">{row.cr_carta_items.length}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
@@ -171,7 +171,7 @@ export default function CartasHistorialPage() {
                       </Link>
                       <Link
                         href={`/cartas/${row.id}`}
-                        className="mr-3 text-xs font-semibold text-slate-600 hover:underline"
+                        className="mr-3 text-xs font-semibold text-fg-muted hover:underline"
                       >
                         Detalles
                       </Link>
