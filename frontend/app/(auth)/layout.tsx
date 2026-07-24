@@ -1,7 +1,7 @@
 "use client";
 
 
-import { InteractiveGridPattern } from "@promexma/ui";
+import { InteractiveGridPattern, ThemeToggle } from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -168,14 +168,17 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                 {roleLabel}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <ThemeToggle />
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
+                aria-label="Cerrar sesión"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </header>
         <main className="relative z-10 app-main-pad app-safe-x overflow-x-hidden py-4 lg:py-6">

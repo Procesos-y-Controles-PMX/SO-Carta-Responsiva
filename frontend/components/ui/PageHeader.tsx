@@ -5,11 +5,12 @@ interface Props {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
-  /** Show the light/dark toggle in the actions row (default true). */
+  /** Show the light/dark toggle in the actions row. Off by default — the
+   *  global toggle lives in the (auth) layout header. */
   showThemeToggle?: boolean;
 }
 
-export default function PageHeader({ eyebrow, title, subtitle, actions, showThemeToggle = true }: Props) {
+export default function PageHeader({ eyebrow, title, subtitle, actions, showThemeToggle = false }: Props) {
   return (
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
       <div>
