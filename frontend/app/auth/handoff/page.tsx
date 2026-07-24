@@ -53,16 +53,16 @@ function HandoffInner() {
 
   if (error) {
     return (
-      <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#f3f6fa] px-6">
+      <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0d1117] px-6">
         <InteractiveGridPattern
           cellSize={40}
           skewY={6}
           className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
-          squaresClassName="stroke-slate-300/80"
+          squaresClassName="stroke-white/35"
         />
-        <div className="relative z-10 w-full max-w-sm rounded-lg border border-red-200 bg-red-50 p-5 text-center">
-          <AlertCircle aria-hidden="true" className="mx-auto mb-2 h-6 w-6 text-red-600" />
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="relative z-10 w-full max-w-sm rounded-lg border border-red-500/30 bg-red-950/80 p-5 text-center backdrop-blur-sm">
+          <AlertCircle aria-hidden="true" className="mx-auto mb-2 h-6 w-6 text-red-400" />
+          <p className="text-sm text-red-200">{error}</p>
           <a
             href={portalUrl ? `${portalUrl}/login?app=carta-responsiva` : "/login"}
             className="btn-primary mt-4 inline-block"
@@ -74,12 +74,12 @@ function HandoffInner() {
     );
   }
 
-  return <GridLoadingScreen message={ENTERING} variant="light" />;
+  return <GridLoadingScreen message={ENTERING} variant="dark" />;
 }
 
 export default function HandoffPage() {
   return (
-    <Suspense fallback={<GridLoadingScreen message={ENTERING} variant="light" />}>
+    <Suspense fallback={<GridLoadingScreen message={ENTERING} variant="dark" />}>
       <HandoffInner />
     </Suspense>
   );

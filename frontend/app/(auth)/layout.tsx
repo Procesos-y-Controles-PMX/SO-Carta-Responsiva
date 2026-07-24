@@ -1,7 +1,7 @@
 "use client";
 
 
-import { InteractiveGridPattern, ThemeToggle } from "@promexma/ui";
+import { InteractiveGridPattern, ThemeToggle, GridLoadingScreen } from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -51,7 +51,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     if (!loading && !getCurrentUser()) router.replace("/login");
   }, [loading, router]);
 
-  if (loading || !user) return <main className="min-h-screen" />;
+  if (loading || !user) {
+    return <GridLoadingScreen message="Verificando sesión..." variant="dark" />;
+  }
 
   const filteredNav = navItems.filter((item) => {
     if (!item.roles) return true;
@@ -158,27 +160,25 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             squaresClassName="stroke-slate-300/80"
           />
         </div>
-        <header className="app-safe-x sticky top-0 z-30 border-b border-line/70 bg-canvas/95 py-3 backdrop-blur-sm lg:py-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="truncate font-display text-lg font-semibold tracking-tight text-fg lg:text-xl">
-                SO Cartas Responsivas
-              </h1>
-              <p className="truncate text-xs text-fg-subtle lg:text-sm">
-                {roleLabel}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <ThemeToggle />
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
-                aria-label="Cerrar sesión"
-              >
-                <LogOut className="h-5 w-5" />
-              </button>
-            </div>
+        <header className="app-safe-x sticky top-0 z-30 flex items-center gap-3 bg-transparent py-3 lg:py-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-lg font-semibold tracking-tight text-fg lg:text-xl">
+              SO Cartas Responsivas
+            </h1>
+            <p className="truncate text-xs text-fg-subtle lg:text-sm">
+              {roleLabel}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
         </header>
         <main className="relative z-10 app-main-pad app-safe-x overflow-x-hidden py-4 lg:py-6">
