@@ -1,7 +1,7 @@
 "use client";
 
 
-import { InteractiveGridPattern, ThemeToggle, GridLoadingScreen } from "@promexma/ui";
+import { InteractiveGridPattern, ThemeToggle, GridLoadingScreen, GridThemeToggle } from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +18,6 @@ import {
 
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
-import GridThemeToggle from "@/components/ui/GridThemeToggle";
 import { ROLE_LABELS } from "@/lib/access";
 import { getCurrentUser, logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
