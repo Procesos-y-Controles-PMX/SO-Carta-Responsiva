@@ -3,8 +3,10 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
+import { GridLoadingScreen, InteractiveGridPattern } from "@promexma/ui";
 
 const SESSION_KEY = "cr_session";
+const ENTERING = "Entrando a SO Cartas Responsivas...";
 
 function HandoffInner() {
   const searchParams = useSearchParams();
@@ -49,10 +51,16 @@ function HandoffInner() {
 
   const portalUrl = process.env.NEXT_PUBLIC_PORTAL_URL;
 
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-muted px-6">
-      {error ? (
-        <div className="w-full max-w-sm rounded-lg border border-red-200 bg-red-50 p-5 text-center">
+  if (error) {
+    return (
+      <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#f3f6fa] px-6">
+        <InteractiveGridPattern
+          cellSize={40}
+          skewY={6}
+          className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
+          squaresClassName="stroke-slate-300/80"
+        />
+        <div className="relative z-10 w-full max-w-sm rounded-lg border border-red-200 bg-red-50 p-5 text-center">
           <AlertCircle aria-hidden="true" className="mx-auto mb-2 h-6 w-6 text-red-600" />
           <p className="text-sm text-red-700">{error}</p>
           <a
@@ -62,23 +70,16 @@ function HandoffInner() {
             Volver a iniciar sesión
           </a>
         </div>
-      ) : (
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-b-2 border-brand"
-            role="status"
-            aria-label="Cargando"
-          />
-          <p className="text-sm text-fg-subtle">Entrando a SO Cartas Responsivas...</p>
-        </div>
-      )}
-    </main>
-  );
+      </main>
+    );
+  }
+
+  return <GridLoadingScreen message={ENTERING} variant="light" />;
 }
 
 export default function HandoffPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<GridLoadingScreen message={ENTERING} variant="light" />}>
       <HandoffInner />
     </Suspense>
   );

@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { GridLoadingScreen } from "@promexma/ui";
 import { loginByEmailPassword } from "@/lib/auth";
 
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL;
@@ -20,15 +21,7 @@ export default function LoginPage() {
   }, []);
 
   if (PORTAL_URL) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-muted">
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-b-2 border-brand"
-          role="status"
-          aria-label="Cargando"
-        />
-      </main>
-    );
+    return <GridLoadingScreen variant="dark" message="Redirigiendo al portal..." />;
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
