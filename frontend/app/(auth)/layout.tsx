@@ -18,6 +18,7 @@ import {
 
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import GridThemeToggle from "@/components/ui/GridThemeToggle";
 import { ROLE_LABELS } from "@/lib/access";
 import { getCurrentUser, logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
@@ -130,7 +131,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-white/10 p-3 space-y-2">
+          {sidebarCollapsed ? (
+            <div className="flex justify-center">
+              <GridThemeToggle compact />
+            </div>
+          ) : (
+            <GridThemeToggle />
+          )}
           <div className={cn("flex items-center gap-3 rounded-sm border border-white/10 bg-[#0d1117] p-3", sidebarCollapsed && "justify-center p-2")}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{initials}</div>
             {!sidebarCollapsed ? (
@@ -170,7 +178,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ThemeToggle />
+            {/* Classic toggle stays on mobile — sidebar is desktop-only. */}
+            <ThemeToggle className="lg:hidden" />
             <button
               type="button"
               onClick={handleLogout}
