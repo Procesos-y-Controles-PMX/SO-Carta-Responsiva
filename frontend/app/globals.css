@@ -166,19 +166,19 @@ body {
 }
 
 .btn-secondary {
-  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:-translate-y-px hover:bg-slate-50 hover:shadow-sm;
+  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-px hover:bg-muted hover:shadow-sm;
 }
 
 .btn-danger {
-  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-brand transition-all hover:-translate-y-px hover:bg-red-50 hover:shadow-sm;
+  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-red-200 bg-card px-4 py-2.5 text-sm font-semibold text-brand transition-all hover:-translate-y-px hover:bg-red-50 hover:shadow-sm;
 }
 
 .input-field {
-  @apply w-full rounded-sm border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition-colors focus:border-steel focus:ring-1 focus:ring-steel/30;
+  @apply w-full rounded-sm border border-line bg-card px-3 py-2.5 text-sm text-fg outline-none transition-colors focus:border-steel focus:ring-1 focus:ring-steel/30;
 }
 
 .card-panel {
-  @apply rounded-sm border border-slate-200/80 bg-white;
+  @apply rounded-sm border border-line/80 bg-card;
   box-shadow: var(--shadow-card);
 }
 
