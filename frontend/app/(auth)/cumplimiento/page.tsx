@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { CalendarRange, Filter, MapPin } from "lucide-react";
+import { SkeletonRow } from "@promexma/ui";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
 import PageHeader from "@/components/ui/PageHeader";
@@ -359,7 +360,15 @@ export default function CumplimientoPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-fg-subtle">Cargando reporte...</p>
+        <div className="card-panel overflow-hidden" aria-label="Cargando reporte">
+          <div className="divide-y divide-line-subtle">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonRow key={i} loading index={i} height={52}>
+                {null}
+              </SkeletonRow>
+            ))}
+          </div>
+        </div>
       ) : (
         <>
           <div className="card-panel overflow-hidden">

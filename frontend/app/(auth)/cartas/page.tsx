@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowRight, FilePlus2, FileText } from "lucide-react";
+import { SkeletonRow } from "@promexma/ui";
 import { canDeleteCartas, canGenerateCartas } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { deleteCarta, listCartas, type CartaWithRelations, generadoPorLabel } from "@/lib/queries/cartas";
@@ -91,7 +92,13 @@ export default function CartasHistorialPage() {
           <FileText className="h-5 w-5 text-fg-faint" aria-hidden="true" />
         </div>
         {loading ? (
-          <p className="p-6 text-sm text-fg-subtle">Cargando...</p>
+          <div className="divide-y divide-line-subtle" aria-label="Cargando cartas">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonRow key={i} loading index={i} height={64}>
+                {null}
+              </SkeletonRow>
+            ))}
+          </div>
         ) : rows.length === 0 ? (
           <div className="px-6 py-10 text-center">
             <p className="text-sm font-medium text-fg-strong">Aún no hay cartas registradas</p>

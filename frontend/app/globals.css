@@ -227,3 +227,46 @@ body {
   outline: 2px solid var(--focus-ring-color);
   outline-offset: 2px;
 }
+
+/* ============================================================
+   Add to globals.css in EACH app:
+     SO-Portal/app/globals.css
+     SO-Equipo-Movil/mini-os/src/app/globals.css
+     SO-Cotizador/frontend/app/globals.css
+     SO-Permisos/frontend/app/globals.css
+     SO-Carta-Responsiva/frontend/app/globals.css
+
+   SO-UI ships no stylesheet, so the keyframes its components reference have
+   to live in the consuming app (this is already how rail-glow and
+   module-enter-* work). @source already covers the package's utilities.
+   ============================================================ */
+
+/* Motion tokens, mirrored for CSS-only call sites. Keep in sync with motion.ts. */
+:root {
+  --motion-instant: 90ms;
+  --motion-quick: 180ms;
+  --motion-settle: 280ms;
+  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* SkeletonRow — one sweep per row, replacing animate-pulse on 30–40 nodes. */
+@keyframes so-skeleton-sweep {
+  0%        { transform: translateX(-120%) }
+  60%, 100% { transform: translateX(220%) }
+}
+
+/* RefreshButton — constant-velocity spin; the settle is a JS transform. */
+@keyframes so-refresh-spin {
+  to { transform: rotate(360deg) }
+}
+
+/* useUpdatedFlash — steel, not red: informs without alarming. */
+@keyframes so-updated-flash {
+  0%   { background-color: rgba(52, 80, 122, 0) }
+  18%  { background-color: var(--steel-tint) }
+  100% { background-color: rgba(52, 80, 122, 0) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="so-skeleton-sweep"] { animation: none }
+}

@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@promexma/ui": "github:Procesos-y-Controles-PMX/SO-UI#06fe22c",
+    "@promexma/ui": "github:Procesos-y-Controles-PMX/SO-UI#5b62213",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.105.3",
     "@tailwindcss/postcss": "^4.2.4",
