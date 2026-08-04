@@ -41,7 +41,15 @@ function HandoffInner() {
           return;
         }
 
-        window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload.user));
+        const now = Date.now();
+        window.sessionStorage.setItem(
+          SESSION_KEY,
+          JSON.stringify({
+            user: payload.user,
+            issuedAt: now,
+            lastActivityAt: now,
+          })
+        );
         window.location.replace("/cartas");
       } catch {
         setError("No se pudo contactar al servidor.");

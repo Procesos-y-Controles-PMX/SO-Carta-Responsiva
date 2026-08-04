@@ -234,12 +234,95 @@ export default function CatalogoPage() {
           <div>
             <h3 className="text-sm font-semibold text-fg">Reemplazar catálogo desde archivo</h3>
             <p className="mt-1 text-xs text-fg-subtle">
-              Export SAP (TSV/CSV/.XLS) con columnas Centro, SKU, Material, UMB y Precio. Por cada
-              sucursal (Centro) + código (SKU): si ya existe se actualiza precio/descripción/U.M. y
-              se reactiva; si es nuevo se crea. Filas repetidas en el archivo se colapsan (gana la
-              última). Otras sucursales no tocadas no se modifican.
+              Export SAP (TSV/CSV/.XLS). Por cada sucursal (Centro) + código (SKU): si ya existe se
+              actualiza precio/descripción/U.M. y se reactiva; si es nuevo se crea. Filas repetidas
+              en el archivo se colapsan (gana la última). Otras sucursales no tocadas no se
+              modifican.
             </p>
           </div>
+
+          <div
+            className="overflow-hidden rounded-lg border border-line-strong bg-muted/40"
+            aria-label="Ejemplo del formato de archivo esperado"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line-subtle bg-muted px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-fg-subtle">
+                Formato esperado · primera fila = encabezados
+              </p>
+              <p className="text-[11px] text-fg-subtle">.tsv · .csv · .xls · .xlsx</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[36rem] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="bg-[var(--brand-tint)]">
+                    {(
+                      [
+                        { name: "Centro", required: true },
+                        { name: "SKU", required: true },
+                        { name: "Material", required: true },
+                        { name: "UMB", required: false },
+                        { name: "Precio", required: false },
+                      ] as const
+                    ).map((col) => (
+                      <th
+                        key={col.name}
+                        className="border-b border-r border-line-subtle px-3 py-2.5 font-semibold text-fg last:border-r-0"
+                      >
+                        <span className="inline-flex items-center gap-1.5">
+                          {col.name}
+                          <span
+                            className={
+                              col.required
+                                ? "rounded bg-brand/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand"
+                                : "rounded bg-muted-strong px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-fg-subtle"
+                            }
+                          >
+                            {col.required ? "Oblig." : "Opc."}
+                          </span>
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="font-mono text-[11px] text-fg-strong">
+                  <tr className="bg-card">
+                    <td className="border-b border-r border-line-subtle px-3 py-2">PMX01</td>
+                    <td className="border-b border-r border-line-subtle px-3 py-2">10002345</td>
+                    <td className="border-b border-r border-line-subtle px-3 py-2 font-sans text-xs">
+                      CEMENTO GRIS 50KG
+                    </td>
+                    <td className="border-b border-r border-line-subtle px-3 py-2">PZ</td>
+                    <td className="border-b border-line-subtle px-3 py-2">189.50</td>
+                  </tr>
+                  <tr className="bg-muted/50">
+                    <td className="border-r border-line-subtle px-3 py-2">PMX01</td>
+                    <td className="border-r border-line-subtle px-3 py-2">10006789</td>
+                    <td className="border-r border-line-subtle px-3 py-2 font-sans text-xs">
+                      VARILLA 3/8&quot; X 12M
+                    </td>
+                    <td className="border-r border-line-subtle px-3 py-2">PZA</td>
+                    <td className="px-3 py-2">92.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ul className="space-y-1 border-t border-line-subtle px-3 py-2.5 text-[11px] text-fg-subtle">
+              <li>
+                <span className="font-semibold text-fg-muted">Centro</span> debe coincidir con el
+                código SAP de la sucursal.
+              </li>
+              <li>
+                Los nombres de columna deben ser exactos (
+                <span className="font-mono text-fg-muted">Centro</span>,{" "}
+                <span className="font-mono text-fg-muted">SKU</span>,{" "}
+                <span className="font-mono text-fg-muted">Material</span>
+                ). Precio puede llamarse p. ej.{" "}
+                <span className="font-mono text-fg-muted">Precio</span> o{" "}
+                <span className="font-mono text-fg-muted">Precio unitario</span>.
+              </li>
+            </ul>
+          </div>
+
           <label className="flex items-center gap-2 text-sm text-fg-strong">
             <input
               type="checkbox"

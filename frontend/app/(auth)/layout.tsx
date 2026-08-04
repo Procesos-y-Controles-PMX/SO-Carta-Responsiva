@@ -19,7 +19,7 @@ import {
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ROLE_LABELS } from "@/lib/access";
-import { getCurrentUser, logout, useAuth } from "@/lib/auth";
+import { logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
 import { cn } from "@/lib/utils";
 
@@ -48,8 +48,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (!loading && !getCurrentUser()) router.replace("/login");
-  }, [loading, router]);
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
 
   if (loading || !user) {
     return <GridLoadingScreen message="Verificando sesión..." variant="dark" />;

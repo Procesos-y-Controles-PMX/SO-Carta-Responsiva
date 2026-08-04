@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { normalizeAccessUser } from "./access";
 import type { CrUsuario } from "./types/db";
+import {
+  createSessionTimestamps,
+  getSessionExpiryReason,
+  useSessionTimeout,
+  type SessionTimestamps,
+} from "./session-timeout";
 
 const SESSION_KEY = "cr_session";
+
+type StoredSession = {
+  user: CrUsuario;
+  issuedAt: number;
+  lastActivityAt: number;
+};
 
 function normalizeSessionUser(user: CrUsuario): CrUsuario {
   return normalizeAccessUser(user);
@@ -18,6 +30,74 @@ function getSessionStore(): Storage | null {
 function clearLegacySession(): void {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(SESSION_KEY);
+}
+
+function stripPassword(user: CrUsuario & { password?: string }): CrUsuario {
+  if (user.password !== undefined) {
+    const { password: _p, ...rest } = user;
+    return normalizeSessionUser(rest as CrUsuario);
+  }
+  return normalizeSessionUser(user);
+}
+
+function parseStoredSession(
+  raw: string
+): { session: StoredSession; migrated: boolean } | null {
+  try {
+    const parsed = JSON.parse(raw) as
+      | (CrUsuario & { password?: string })
+      | (Partial<StoredSession> & { user?: CrUsuario & { password?: string } });
+
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      "user" in parsed &&
+      parsed.user &&
+      typeof (parsed as StoredSession).issuedAt === "number" &&
+      typeof (parsed as StoredSession).lastActivityAt === "number"
+    ) {
+      const session = parsed as StoredSession;
+      return {
+        session: {
+          user: stripPassword(session.user),
+          issuedAt: session.issuedAt,
+          lastActivityAt: session.lastActivityAt,
+        },
+        migrated: false,
+      };
+    }
+
+    if (parsed && typeof parsed === "object" && "id" in parsed && "email" in parsed) {
+      const timestamps = createSessionTimestamps();
+      return {
+        session: {
+          user: stripPassword(parsed as CrUsuario & { password?: string }),
+          ...timestamps,
+        },
+        migrated: true,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(user: CrUsuario, timestamps: SessionTimestamps): void {
+  const store = getSessionStore();
+  if (!store) return;
+  clearLegacySession();
+  const payload: StoredSession = {
+    user: normalizeSessionUser(user),
+    ...timestamps,
+  };
+  store.setItem(SESSION_KEY, JSON.stringify(payload));
+}
+
+function clearSessionStore(): void {
+  clearLegacySession();
+  getSessionStore()?.removeItem(SESSION_KEY);
 }
 
 export type LoginResult =
@@ -52,9 +132,8 @@ export async function loginByEmailPassword(
     if (!store) {
       return { ok: false, message: "No se pudo guardar la sesión en el navegador." };
     }
-    clearLegacySession();
     const user = normalizeSessionUser(payload.user);
-    store.setItem(SESSION_KEY, JSON.stringify(user));
+    writeSession(user, createSessionTimestamps());
     return { ok: true, user };
   } catch {
     return { ok: false, message: "No se pudo contactar al servidor de autenticación." };
@@ -62,13 +141,15 @@ export async function loginByEmailPassword(
 }
 
 export function saveSessionUser(user: CrUsuario): void {
-  clearLegacySession();
-  getSessionStore()?.setItem(SESSION_KEY, JSON.stringify(normalizeSessionUser(user)));
+  const existing = getSessionTimestamps();
+  writeSession(
+    normalizeSessionUser(user),
+    existing ?? createSessionTimestamps()
+  );
 }
 
 export async function logout(): Promise<void> {
-  clearLegacySession();
-  getSessionStore()?.removeItem(SESSION_KEY);
+  clearSessionStore();
   try {
     await fetch("/api/auth/logout", { method: "POST" });
   } catch {
@@ -76,26 +157,64 @@ export async function logout(): Promise<void> {
   }
 }
 
-export function getCurrentUser(): CrUsuario | null {
+export function getSessionTimestamps(): SessionTimestamps | null {
   const store = getSessionStore();
   if (!store) return null;
   const raw = store.getItem(SESSION_KEY);
   if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as CrUsuario & { password?: string };
-    if (parsed.password !== undefined) {
-      const { password: _p, ...user } = parsed;
-      return normalizeSessionUser(user as CrUsuario);
-    }
-    return normalizeSessionUser(parsed);
-  } catch {
+  const parsed = parseStoredSession(raw);
+  if (!parsed) return null;
+  return {
+    issuedAt: parsed.session.issuedAt,
+    lastActivityAt: parsed.session.lastActivityAt,
+  };
+}
+
+export function setSessionTimestamps(timestamps: SessionTimestamps): void {
+  const user = getCurrentUser({ skipExpiryCheck: true });
+  if (!user) return;
+  writeSession(user, timestamps);
+}
+
+export function getCurrentUser(options?: {
+  skipExpiryCheck?: boolean;
+}): CrUsuario | null {
+  const store = getSessionStore();
+  if (!store) return null;
+  const raw = store.getItem(SESSION_KEY);
+  if (!raw) return null;
+
+  const parsed = parseStoredSession(raw);
+  if (!parsed) {
+    clearSessionStore();
     return null;
   }
+
+  const { session, migrated } = parsed;
+
+  if (!options?.skipExpiryCheck && getSessionExpiryReason(session)) {
+    clearSessionStore();
+    return null;
+  }
+
+  if (migrated) {
+    writeSession(session.user, {
+      issuedAt: session.issuedAt,
+      lastActivityAt: session.lastActivityAt,
+    });
+  }
+
+  return session.user;
 }
 
 export function useAuth(): { user: CrUsuario | null; loading: boolean } {
   const [user, setUser] = useState<CrUsuario | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const expire = useCallback(async () => {
+    await logout();
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     clearLegacySession();
@@ -129,6 +248,15 @@ export function useAuth(): { user: CrUsuario | null; loading: boolean } {
       cancelled = true;
     };
   }, []);
+
+  useSessionTimeout({
+    enabled: Boolean(user),
+    getTimestamps: getSessionTimestamps,
+    setTimestamps: setSessionTimestamps,
+    onExpire: () => {
+      void expire();
+    },
+  });
 
   return { user, loading };
 }

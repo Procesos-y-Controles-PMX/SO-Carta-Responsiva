@@ -4,14 +4,6 @@
 create extension if not exists "pgcrypto";
 
 alter table cr_sucursales add column if not exists codigo_sap text;
-alter table cr_sucursales add column if not exists iva_porcentaje numeric(5, 2) not null default 16;
-alter table cr_sucursales add column if not exists ciudad text;
-alter table cr_sucursales add column if not exists direccion text;
-alter table cr_sucursales add column if not exists estado text;
-alter table cr_sucursales add column if not exists gerente_nombre text;
-alter table cr_sucursales add column if not exists gerente_celular text;
-alter table cr_sucursales add column if not exists gerente_email text;
-alter table cr_usuarios add column if not exists region text;
 
 update cr_sucursales set codigo_sap = 'E300' where nombre = 'Mérida' and codigo_sap is null;
 update cr_sucursales set codigo_sap = 'E301' where nombre = 'Cancún' and codigo_sap is null;
