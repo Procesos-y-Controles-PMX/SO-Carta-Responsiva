@@ -46,6 +46,12 @@ export function scorePasswordCloseness(
     return { closeness: "n_a", distance: null, hint: "hash", attemptLen };
   }
 
+  // Exact match: the attempt was the real password (reachable when the login was
+  // rejected for another reason, e.g. an inactive account). Never report it as a typo.
+  if (attempt === stored) {
+    return { closeness: "n_a", distance: 0, hint: null, attemptLen };
+  }
+
   const local = (email || "").split("@")[0]?.trim() || "";
   if (local && attempt.toLowerCase() === local.toLowerCase()) {
     return {

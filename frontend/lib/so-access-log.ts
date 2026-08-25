@@ -64,20 +64,23 @@ export function missingEquipoAccessLogEnv(): string[] {
   return missing;
 }
 
-type AccessProfile = { nombre: string | null; ubicacion: string | null };
+type AccessProfile = { nombre: string | null; ubicacion: string | null; region: string | null };
 
 function rememberProfile(
   map: Map<string, AccessProfile>,
   email: unknown,
   nombre: unknown,
   ubicacion: string | null,
+  region: unknown = null,
 ) {
   const e = String(email ?? "").trim().toLowerCase();
   if (!e) return;
-  const current = map.get(e) ?? { nombre: null, ubicacion: null };
+  const current = map.get(e) ?? { nombre: null, ubicacion: null, region: null };
   const n = String(nombre ?? "").trim();
   if (n && !current.nombre) current.nombre = n;
   if (ubicacion && !current.ubicacion) current.ubicacion = ubicacion;
+  const r = String(region ?? "").trim();
+  if (r && !current.region) current.region = r;
   map.set(e, current);
 }
 
@@ -101,6 +104,7 @@ async function profilesByEmail(equipo: SupabaseClient): Promise<Map<string, Acce
       row.CORREO,
       row.NOMBRE,
       formatLocation(row.REGION, row.SUCURSAL, row.CENTRO),
+      row.REGION,
     );
   }
 
@@ -112,7 +116,7 @@ async function profilesByEmail(equipo: SupabaseClient): Promise<Map<string, Acce
     cp.from("perfiles").select("email, nombre_completo"),
   ]);
   for (const row of carta.data || []) {
-    rememberProfile(map, row.email, row.nombre_completo, formatLocation(row.region));
+    rememberProfile(map, row.email, row.nombre_completo, formatLocation(row.region), row.region);
   }
   for (const row of cotizador.data || []) rememberProfile(map, row.email, row.nombre_completo, null);
   for (const row of permisos.data || []) rememberProfile(map, row.email, row.nombre_completo, null);
@@ -189,11 +193,17 @@ export async function logSoFailedAccess(input: FailedAccessInput): Promise<void>
     let centro = input.centro?.trim() || null;
 
     if (correo && (!nombre || !region)) {
-      const { data: named } = await supabase
+      // `correo` is user input and ILIKE treats _ and % as wildcards, so this can
+      // match more than one row; maybeSingle() would then error and drop the lookup.
+      // Take a few candidates and keep only an exact case-insensitive match.
+      const { data: candidates } = await supabase
         .from("APP_USERS")
-        .select("NOMBRE, REGION, SUCURSAL, CENTRO")
+        .select("CORREO, NOMBRE, REGION, SUCURSAL, CENTRO")
         .ilike("CORREO", correo)
-        .maybeSingle();
+        .limit(5);
+      const named = (candidates || []).find(
+        (r) => String(r.CORREO ?? "").trim().toLowerCase() === correo,
+      );
       if (named) {
         nombre = nombre || String(named.NOMBRE ?? "").trim() || null;
         region = region || String(named.REGION ?? "").trim() || null;
@@ -263,7 +273,7 @@ async function loadAccessInsights(
   const mix = buildMixAndHeatmap(
     entries.map((entry) => ({
       APP: entry.APP,
-      REGION: (entry.UBICACION || "").split(" · ")[0] || "Sin región",
+      REGION: entry.REGION || "Sin región",
       CREATED_AT: entry.CREATED_AT,
     })),
   );
@@ -366,7 +376,8 @@ export async function fetchSoAccessLogs(opts: {
       .gte("CREATED_AT", rangeStartIso(days))
       .order("CREATED_AT", { ascending: false })
       .limit(2000);
-    if (search) query = query.ilike("CORREO", `%${search}%`);
+    // No SQL filter on CORREO: the search also matches NOMBRE and UBICACION,
+    // which are resolved in memory below.
     if (withAppFilter && app && app !== "todas") query = query.eq("APP", app);
     return query;
   };
@@ -396,6 +407,7 @@ export async function fetchSoAccessLogs(opts: {
       APP: row.APP || "equipo",
       NOMBRE: row.NOMBRE?.trim() || profile?.nombre || null,
       UBICACION: profile?.ubicacion || null,
+      REGION: profile?.region || null,
     };
     if (
       wantedSearch &&

@@ -28,6 +28,7 @@ export type AccessLogRow = {
   USER_AGENT: string | null;
   CREATED_AT: string;
   UBICACION?: string | null;
+  REGION?: string | null;
 };
 
 export type AccessDayBucket = {
