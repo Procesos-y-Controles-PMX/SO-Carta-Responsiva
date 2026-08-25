@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { normalizeAccessUser } from "@/lib/access";
-import { clientMetaFromRequest, logSoAccess } from "@/lib/so-access-log";
+import { clientMetaFromRequest, logSoAccess, logSoFailedAccess } from "@/lib/so-access-log";
+import { scorePasswordCloseness } from "@/lib/password-closeness";
 import { createSupabaseServerClient, missingSupabaseServerEnv } from "@/lib/supabase-server";
 import { attachServerSession } from "@/lib/server-session";
 import type { CrUsuario } from "@/lib/types/db";
@@ -58,6 +59,19 @@ export async function POST(request: Request) {
       (candidate) => candidate.activo === true,
     );
     if (!accessUser) {
+      const any = ((candidates ?? []) as LoginCandidate[])[0];
+      const meta = clientMetaFromRequest(request);
+      void logSoFailedAccess({
+        app: "carta-responsiva",
+        correo: email,
+        nombre: any?.nombre_completo,
+        reason: any ? "inactive" : "unknown_email",
+        closeness: "n_a",
+        attemptLen: password.length,
+        region: any?.region,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+      });
       return NextResponse.json(
         { ok: false, message: "Credenciales inválidas o usuario inactivo." },
         { status: 401 }
@@ -86,6 +100,26 @@ export async function POST(request: Request) {
       String(accessUser.password ?? "").trim() === password;
 
     if (!sharedCredentialsMatch && !cartaHashMatches && !legacyCartaMatch) {
+      const stored =
+        String((sharedCandidates ?? [])[0]?.password ?? "") ||
+        (!accessUser.password_hash ? String(accessUser.password ?? "") : "");
+      const close = stored
+        ? scorePasswordCloseness(password, stored, email)
+        : { closeness: "n_a" as const, distance: null, attemptLen: password.length, hint: "hash" };
+      const meta = clientMetaFromRequest(request);
+      void logSoFailedAccess({
+        app: "carta-responsiva",
+        correo: email,
+        nombre: accessUser.nombre_completo,
+        reason: "wrong_password",
+        closeness: close.closeness,
+        distance: close.distance,
+        attemptLen: close.attemptLen,
+        hint: close.hint,
+        region: accessUser.region,
+        ip: meta.ip,
+        userAgent: meta.userAgent,
+      });
       return NextResponse.json(
         { ok: false, message: "Credenciales inválidas o usuario inactivo." },
         { status: 401 },

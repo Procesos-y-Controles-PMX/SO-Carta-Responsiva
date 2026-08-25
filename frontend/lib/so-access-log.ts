@@ -1,7 +1,16 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { AccessDayBucket, AccessLogRow, SoAppId } from "@/lib/so-access-apps";
+import {
+  buildFailureInsights,
+  buildMixAndHeatmap,
+  buildQuietUsers,
+  formatLocation,
+  type AccessInsights,
+  type FailureEntry,
+} from "@/lib/access-insights";
 
 export type { AccessDayBucket, AccessLogRow, SoAppId } from "@/lib/so-access-apps";
+export type { AccessInsights } from "@/lib/access-insights";
 export { SO_APP_LABELS } from "@/lib/so-access-apps";
 
 export type AccessMethod = "credentials" | "portal-handoff";
@@ -55,6 +64,61 @@ export function missingEquipoAccessLogEnv(): string[] {
   return missing;
 }
 
+type AccessProfile = { nombre: string | null; ubicacion: string | null };
+
+function rememberProfile(
+  map: Map<string, AccessProfile>,
+  email: unknown,
+  nombre: unknown,
+  ubicacion: string | null,
+) {
+  const e = String(email ?? "").trim().toLowerCase();
+  if (!e) return;
+  const current = map.get(e) ?? { nombre: null, ubicacion: null };
+  const n = String(nombre ?? "").trim();
+  if (n && !current.nombre) current.nombre = n;
+  if (ubicacion && !current.ubicacion) current.ubicacion = ubicacion;
+  map.set(e, current);
+}
+
+function cpClient(): SupabaseClient | null {
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function profilesByEmail(equipo: SupabaseClient): Promise<Map<string, AccessProfile>> {
+  const map = new Map<string, AccessProfile>();
+  const { data: equipoUsers } = await equipo
+    .from("APP_USERS")
+    .select("CORREO, NOMBRE, REGION, SUCURSAL, CENTRO");
+  for (const row of equipoUsers || []) {
+    rememberProfile(
+      map,
+      row.CORREO,
+      row.NOMBRE,
+      formatLocation(row.REGION, row.SUCURSAL, row.CENTRO),
+    );
+  }
+
+  const cp = cpClient();
+  if (!cp) return map;
+  const [carta, cotizador, permisos] = await Promise.all([
+    cp.from("cr_usuarios").select("email, nombre_completo, region"),
+    cp.from("ctz_usuarios").select("email, nombre_completo"),
+    cp.from("perfiles").select("email, nombre_completo"),
+  ]);
+  for (const row of carta.data || []) {
+    rememberProfile(map, row.email, row.nombre_completo, formatLocation(row.region));
+  }
+  for (const row of cotizador.data || []) rememberProfile(map, row.email, row.nombre_completo, null);
+  for (const row of permisos.data || []) rememberProfile(map, row.email, row.nombre_completo, null);
+  return map;
+}
+
 /**
  * Persist a successful login into Equipo Móvil APP_ACCESS_LOG.
  * Never throws — auth must not fail if logging fails.
@@ -94,6 +158,76 @@ export async function logSoAccess(input: AccessLogInput): Promise<void> {
   }
 }
 
+export type FailedAccessInput = {
+  correo: string;
+  nombre?: string | null;
+  app: SoAppId;
+  method?: AccessMethod;
+  reason: "unknown_email" | "inactive" | "wrong_password" | "missing_fields" | "handoff_invalid";
+  closeness?: string | null;
+  distance?: number | null;
+  attemptLen?: number | null;
+  hint?: string | null;
+  region?: string | null;
+  sucursal?: string | null;
+  centro?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+};
+
+export async function logSoFailedAccess(input: FailedAccessInput): Promise<void> {
+  const correo = (input.correo || "").trim().toLowerCase();
+  if (!correo && input.reason !== "missing_fields") return;
+
+  try {
+    const supabase = equipoClient();
+    if (!supabase) return;
+
+    let nombre = input.nombre?.trim() || null;
+    let region = input.region?.trim() || null;
+    let sucursal = input.sucursal?.trim() || null;
+    let centro = input.centro?.trim() || null;
+
+    if (correo && (!nombre || !region)) {
+      const { data: named } = await supabase
+        .from("APP_USERS")
+        .select("NOMBRE, REGION, SUCURSAL, CENTRO")
+        .ilike("CORREO", correo)
+        .maybeSingle();
+      if (named) {
+        nombre = nombre || String(named.NOMBRE ?? "").trim() || null;
+        region = region || String(named.REGION ?? "").trim() || null;
+        sucursal = sucursal || String(named.SUCURSAL ?? "").trim() || null;
+        centro = centro || String(named.CENTRO ?? "").trim() || null;
+      }
+    }
+
+    const { error } = await supabase.from("APP_LOGIN_FAILURE").insert({
+      CORREO: correo || "(vacío)",
+      NOMBRE: nombre,
+      APP: input.app,
+      METHOD: input.method || "credentials",
+      REASON: input.reason,
+      CLOSENESS: input.closeness || null,
+      DISTANCE: input.distance ?? null,
+      ATTEMPT_LEN: input.attemptLen ?? null,
+      HINT: input.hint || null,
+      REGION: region,
+      SUCURSAL: sucursal,
+      CENTRO: centro,
+      IP: input.ip ?? null,
+      USER_AGENT: input.userAgent ?? null,
+      CREATED_AT: new Date().toISOString(),
+    });
+    if (error) console.error("[access-log] failure insert failed:", error.message);
+  } catch (err) {
+    console.error(
+      "[access-log] failure unexpected error:",
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
 function mexicoCityDateKey(iso: string): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: MX_TZ,
@@ -119,12 +253,91 @@ function rangeStartIso(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000 - 12 * 60 * 60 * 1000).toISOString();
 }
 
+async function loadAccessInsights(
+  supabase: SupabaseClient,
+  entries: AccessLogRow[],
+  days: number,
+  wantedApp: string | null,
+  profiles: Map<string, AccessProfile>,
+): Promise<AccessInsights> {
+  const mix = buildMixAndHeatmap(
+    entries.map((entry) => ({
+      APP: entry.APP,
+      REGION: (entry.UBICACION || "").split(" · ")[0] || "Sin región",
+      CREATED_AT: entry.CREATED_AT,
+    })),
+  );
+
+  const { data: users } = await supabase
+    .from("APP_USERS")
+    .select("CORREO, NOMBRE, SUCURSAL, LAST_LOGIN, ACTIVO");
+  const since90 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: recent } = await supabase
+    .from("APP_ACCESS_LOG")
+    .select("CORREO, CREATED_AT")
+    .gte("CREATED_AT", since90)
+    .order("CREATED_AT", { ascending: false })
+    .limit(8000);
+  const lastByEmail = new Map<string, string>();
+  for (const row of recent || []) {
+    const email = String(row.CORREO || "").trim().toLowerCase();
+    if (email && !lastByEmail.has(email)) lastByEmail.set(email, row.CREATED_AT);
+  }
+  const quiet = buildQuietUsers(
+    (users || []).map((u) => ({
+      correo: String(u.CORREO || ""),
+      nombre: u.NOMBRE || null,
+      sucursal: u.SUCURSAL || null,
+      lastLogin: u.LAST_LOGIN || null,
+      activo: u.ACTIVO,
+    })),
+    lastByEmail,
+  );
+
+  let failureRows: FailureEntry[] = [];
+  let failQuery = supabase
+    .from("APP_LOGIN_FAILURE")
+    .select(
+      "ID, CORREO, NOMBRE, APP, METHOD, REASON, CLOSENESS, DISTANCE, ATTEMPT_LEN, HINT, REGION, SUCURSAL, CENTRO, IP, USER_AGENT, CREATED_AT",
+    )
+    .gte("CREATED_AT", rangeStartIso(days))
+    .order("CREATED_AT", { ascending: false })
+    .limit(2000);
+  if (wantedApp) failQuery = failQuery.eq("APP", wantedApp);
+  const failRes = await failQuery;
+  if (!failRes.error) {
+    failureRows = (failRes.data || []).map((row) => {
+      const email = String(row.CORREO || "").trim().toLowerCase();
+      const profile = profiles.get(email);
+      return {
+        ID: row.ID,
+        CORREO: row.CORREO,
+        NOMBRE: row.NOMBRE || profile?.nombre || null,
+        APP: row.APP || "equipo",
+        METHOD: row.METHOD,
+        REASON: row.REASON,
+        CLOSENESS: row.CLOSENESS,
+        DISTANCE: row.DISTANCE,
+        ATTEMPT_LEN: row.ATTEMPT_LEN,
+        HINT: row.HINT,
+        UBICACION:
+          formatLocation(row.REGION, row.SUCURSAL, row.CENTRO) || profile?.ubicacion || null,
+        IP: row.IP,
+        USER_AGENT: row.USER_AGENT,
+        CREATED_AT: row.CREATED_AT,
+      };
+    });
+  }
+
+  return { ...mix, quiet, failures: buildFailureInsights(failureRows) };
+}
+
 export async function fetchSoAccessLogs(opts: {
   days: number;
   search?: string;
   app?: string;
 }): Promise<
-  | { ok: true; days: AccessDayBucket[]; total: number; rangeDays: number }
+  | { ok: true; days: AccessDayBucket[]; total: number; rangeDays: number; insights: AccessInsights }
   | { ok: false; message: string }
 > {
   const supabase = equipoClient();
@@ -171,22 +384,32 @@ export async function fetchSoAccessLogs(opts: {
 
   const wantedApp = app && app !== "todas" ? app : null;
   const wantedSearch = search.toLowerCase();
-  const rows = ((data || []) as unknown as AccessLogRow[]).filter((row) => {
-    const appId = (row.APP || "equipo").toLowerCase();
-    if (wantedApp && appId !== wantedApp) return false;
-    if (!wantedSearch) return true;
-    return `${row.CORREO} ${row.NOMBRE || ""}`.toLowerCase().includes(wantedSearch);
-  });
+  const profiles = await profilesByEmail(supabase);
   const byDay = new Map<string, AccessDayBucket>();
 
-  for (const row of rows) {
+  for (const row of (data || []) as unknown as AccessLogRow[]) {
+    const appId = (row.APP || "equipo").toLowerCase();
+    if (wantedApp && appId !== wantedApp) continue;
+    const profile = profiles.get(row.CORREO.trim().toLowerCase());
+    const entry: AccessLogRow = {
+      ...row,
+      APP: row.APP || "equipo",
+      NOMBRE: row.NOMBRE?.trim() || profile?.nombre || null,
+      UBICACION: profile?.ubicacion || null,
+    };
+    if (
+      wantedSearch &&
+      !`${entry.CORREO} ${entry.NOMBRE || ""} ${entry.UBICACION || ""}`.toLowerCase().includes(wantedSearch)
+    ) {
+      continue;
+    }
     const date = mexicoCityDateKey(row.CREATED_AT);
     if (!byDay.has(date)) {
       byDay.set(date, { date, label: formatDayLabel(date), count: 0, entries: [] });
     }
     const bucket = byDay.get(date)!;
     bucket.count += 1;
-    bucket.entries.push({ ...row, APP: row.APP || "equipo" });
+    bucket.entries.push(entry);
   }
 
   const todayKey = mexicoCityDateKey(new Date().toISOString());
@@ -203,5 +426,12 @@ export async function fetchSoAccessLogs(opts: {
     days: dayList,
     total: dayList.reduce((sum, d) => sum + d.count, 0),
     rangeDays: days,
+    insights: await loadAccessInsights(
+      supabase,
+      dayList.flatMap((d) => d.entries),
+      days,
+      wantedApp,
+      profiles,
+    ),
   };
 }

@@ -27,6 +27,7 @@ export type AccessLogRow = {
   IP: string | null;
   USER_AGENT: string | null;
   CREATED_AT: string;
+  UBICACION?: string | null;
 };
 
 export type AccessDayBucket = {
