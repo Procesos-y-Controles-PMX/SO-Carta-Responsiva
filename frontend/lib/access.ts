@@ -8,9 +8,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 /** Only these accounts may act as administrador general (Catálogo, Responsables, delete, all sucursales). */
 export const GENERAL_ADMIN_EMAILS = [
-  "fernando.corella@ext.cemex.com", // Inaki
-  "isabela.guzmana@cemex.com", // Isabela
-  "danielalejandro.esparza@cemex.com", // Daniel
+  "fernando.corella@ext.cemex.com",
 ] as const;
 
 const GENERAL_ADMIN_EMAIL_SET = new Set(
