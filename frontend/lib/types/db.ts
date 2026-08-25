@@ -11,6 +11,10 @@ export type CrUsuario = {
   created_at: string;
 };
 
+export type CrUsuarioRow = CrUsuario & {
+  cr_sucursales: { nombre: string; region: string | null } | null;
+};
+
 export type CrSucursal = {
   id: string;
   nombre: string;

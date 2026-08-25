@@ -27,15 +27,16 @@ export function isAllowlistedGeneralAdmin(user: Pick<CrUsuario, "email">): boole
 
 /**
  * Effective role for session/UI/permissions.
- * Non-allowlisted `administrador_general` (or legacy `admin`) are demoted to `usuario`.
+ * Allowlisted emails are always general admin; otherwise the DB role is trusted
+ * so accounts created from Usuarios can sign in with the role they were given.
  */
 export function resolveEffectiveRole(user: Pick<CrUsuario, "email" | "rol">): UserRole {
   if (isAllowlistedGeneralAdmin(user)) return "administrador_general";
 
   const legacy = user.rol as string;
   if (legacy === "administrador_zona") return "administrador_zona";
+  if (legacy === "administrador_general" || legacy === "admin") return "administrador_general";
   if (legacy === "operador") return "usuario";
-  if (legacy === "administrador_general" || legacy === "admin") return "usuario";
   return "usuario";
 }
 

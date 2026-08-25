@@ -3,7 +3,9 @@ export const MODULE_ORDER: readonly string[] = [
   "/cartas/nueva",
   "/catalogo",
   "/responsables",
+  "/usuarios",
   "/cumplimiento",
+  "/accesos",
 ];
 
 export function moduleIndexForPath(pathname: string): number {

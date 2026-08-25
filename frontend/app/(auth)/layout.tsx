@@ -14,6 +14,8 @@ import {
   FilePlus2,
   LogOut,
   PanelLeftClose,
+  Shield,
+  Users,
 } from "lucide-react";
 
 import ModuleTransition from "@/components/common/ModuleTransition";
@@ -42,7 +44,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       { label: "Nueva carta", href: "/cartas/nueva", icon: <FilePlus2 className="h-[18px] w-[18px]" />, roles: ["usuario", "administrador_general"] },
       { label: "Catálogo", href: "/catalogo", icon: <Boxes className="h-[18px] w-[18px]" /> },
       { label: "Responsables", href: "/responsables", icon: <BookUser className="h-[18px] w-[18px]" /> },
+      { label: "Usuarios", href: "/usuarios", icon: <Users className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
       { label: "Cumplimiento", href: "/cumplimiento", icon: <BarChart3 className="h-[18px] w-[18px]" /> },
+      { label: "Accesos", href: "/accesos", icon: <Shield className="h-[18px] w-[18px]" />, roles: ["administrador_general"] },
     ],
     []
   );

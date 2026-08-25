@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { compare } from "bcryptjs";
 import { normalizeAccessUser } from "@/lib/access";
+import { clientMetaFromRequest, logSoAccess } from "@/lib/so-access-log";
 import { createSupabaseServerClient, missingSupabaseServerEnv } from "@/lib/supabase-server";
 import { attachServerSession } from "@/lib/server-session";
 import type { CrUsuario } from "@/lib/types/db";
@@ -97,6 +98,16 @@ export async function POST(request: Request) {
       ...user
     } = accessUser;
     const sessionUser = normalizeAccessUser(user as CrUsuario);
+    const meta = clientMetaFromRequest(request);
+    void logSoAccess({
+      app: "carta-responsiva",
+      userId: sessionUser.id,
+      correo: sessionUser.email,
+      nombre: sessionUser.nombre_completo,
+      method: "credentials",
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+    });
     const response = NextResponse.json({ ok: true, user: sessionUser });
     await attachServerSession(response, sessionUser);
     return response;
