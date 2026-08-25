@@ -171,7 +171,7 @@ export async function fetchSoAccessLogs(opts: {
 
   const wantedApp = app && app !== "todas" ? app : null;
   const wantedSearch = search.toLowerCase();
-  const rows = ((data || []) as AccessLogRow[]).filter((row) => {
+  const rows = ((data || []) as unknown as AccessLogRow[]).filter((row) => {
     const appId = (row.APP || "equipo").toLowerCase();
     if (wantedApp && appId !== wantedApp) return false;
     if (!wantedSearch) return true;
