@@ -14,7 +14,7 @@ export type MobileNavItem = {
 export default function MobileBottomNav({ items }: { items: MobileNavItem[] }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#0d1117] shadow-[0_-4px_24px_rgba(0,0,0,0.2)] pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className="neu-bottom-bar fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)] lg:hidden"
       aria-label="Navegación principal"
     >
       <div className="flex h-[4.25rem] items-stretch">
@@ -32,7 +32,7 @@ export default function MobileBottomNav({ items }: { items: MobileNavItem[] }) {
               className={cn(
                 "flex h-9 w-9 shrink-0 items-center justify-center rounded-sm transition-all",
                 item.active
-                  ? "bg-gradient-to-br from-brand to-brand-active text-white shadow-[0_2px_8px_-3px_rgba(237,28,36,.7)]"
+                  ? "neu-nav-active text-white"
                   : "text-current"
               )}
             >
