@@ -1,7 +1,16 @@
 "use client";
 
 
-import { InteractiveGridPattern, ThemeToggle, GridLoadingScreen, GridThemeToggle } from "@promexma/ui";
+import {
+  InteractiveGridPattern,
+  ThemeToggle,
+  GridLoadingScreen,
+  GridThemeToggle,
+  SIDEBAR_NAV_ACTIVE,
+  SIDEBAR_NAV_IDLE,
+  SIDEBAR_SHELL,
+  SIDEBAR_USER_CARD,
+} from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -89,11 +98,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen app-canvas">
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 hidden h-screen flex-col border-r border-white/10 bg-[#0d1117] shadow-lg transition-all duration-300 lg:flex",
+          "fixed left-0 top-0 z-40 hidden h-screen flex-col transition-all duration-300 lg:flex",
+          SIDEBAR_SHELL,
           sidebarCollapsed ? "w-[72px]" : "w-[250px]"
         )}
       >
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-5">
+        <div className="flex h-16 shrink-0 items-center justify-between px-5">
           <Link href="/cartas" className="flex min-w-0 items-center gap-2.5">
             <Image src="/circulo-promexma.png" alt="Promexma" width={30} height={30} className="shrink-0 rounded-full" />
             {!sidebarCollapsed ? (
@@ -107,7 +117,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setSidebarCollapsed((current) => !current)}
             className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-600 bg-slate-900 text-fg-faint transition hover:border-slate-500 hover:text-white",
+              "neu-button flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-fg-subtle hover:text-fg",
               sidebarCollapsed && "absolute left-[58px]"
             )}
             aria-label={sidebarCollapsed ? "Expandir menú" : "Colapsar menú"}
@@ -122,11 +132,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               href={item.href}
               title={sidebarCollapsed ? item.label : undefined}
               className={cn(
-                "relative flex items-center gap-3 rounded-sm px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
+                "relative flex items-center gap-3 rounded-sm px-3 py-2.5 text-[13px] font-medium",
                 sidebarCollapsed && "justify-center",
-                isActive(item.href)
-                  ? "bg-gradient-to-br from-brand to-brand-active text-white shadow-[0_2px_8px_-3px_rgba(237,28,36,.7)]"
-                  : "text-fg-faint hover:translate-x-0.5 hover:bg-white/10 hover:text-slate-100"
+                isActive(item.href) ? SIDEBAR_NAV_ACTIVE : SIDEBAR_NAV_IDLE,
               )}
             >
               <span className="shrink-0">{item.icon}</span>
@@ -134,7 +142,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="border-t border-white/10 p-3 space-y-2">
+        <div className="p-3 space-y-2">
           {sidebarCollapsed ? (
             <div className="flex justify-center">
               <GridThemeToggle compact />
@@ -142,7 +150,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           ) : (
             <GridThemeToggle />
           )}
-          <div className={cn("flex items-center gap-3 rounded-sm border border-white/10 bg-[#0d1117] p-3", sidebarCollapsed && "justify-center p-2")}>
+          <div className={cn(SIDEBAR_USER_CARD, "flex items-center gap-3", sidebarCollapsed && "justify-center p-2")}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{initials}</div>
             {!sidebarCollapsed ? (
               <>
@@ -150,7 +158,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
                   <p className="truncate text-xs font-semibold text-fg-faint">{displayName}</p>
                   <p className="text-[10px] text-fg-subtle">{roleLabel}</p>
                 </div>
-                <button type="button" onClick={handleLogout} className="rounded-sm p-1.5 text-fg-subtle hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión">
+                <button type="button" onClick={handleLogout} className="neu-button rounded-full p-1.5 text-fg-subtle hover:text-fg" aria-label="Cerrar sesión">
                   <LogOut className="h-4 w-4" />
                 </button>
               </>
@@ -168,7 +176,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             waveDuration={5}
             waveGap={4}
             className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
-            squaresClassName="stroke-slate-300/80"
+            squaresClassName="stroke-[var(--grid-line)]"
           />
         </div>
         <header className="app-safe-x sticky top-0 z-30 flex items-center gap-3 bg-transparent py-3 lg:py-4">
@@ -186,7 +194,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line text-fg-subtle hover:bg-muted lg:hidden"
+              className="neu-button flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-fg-subtle hover:text-fg lg:hidden"
               aria-label="Cerrar sesión"
             >
               <LogOut className="h-5 w-5" />

@@ -1,137 +1,21 @@
 @import "tailwindcss";
+@import "@promexma/ui/clay.css";
 @source "../node_modules/@promexma/ui/src";
 
 /* Class-based dark mode driven by next-themes (`attribute="class"`). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #171717;
-  --brand: #ED1C24;
-  --brand-hover: #c9171e;
-  --brand-active: #a81419;
-  --surface: #eef3f7;
-  --steel: #34507A;
-  --steel-tint: rgba(52, 80, 122, 0.12);
-  --brand-tint: rgba(237, 28, 36, 0.09);
-  --console-bg: #0d1117;
-  --status-crit: #DC2626;
-  --focus-ring-color: var(--steel);
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 14px 30px -20px rgba(16, 24, 40, 0.25);
-
-  /* Semantic neutral ramp (Phase 2 retrofit). Foreground text, surfaces, lines. */
-  --fg: #0f172a;
-  --fg-strong: #334155;
-  --fg-muted: #475569;
-  --fg-subtle: #64748b;
-  --fg-faint: #94a3b8;
-  --card: #ffffff;
-  --muted: #f8fafc;
-  --muted-strong: #f1f5f9;
-  --line: #e2e8f0;
-  --line-subtle: #f1f5f9;
-  --line-strong: #cbd5e1;
-  --canvas: #f3f6fa;
-}
-
-/*
- * Phase 1 (infra): dark tokens + root canvas flip only. Component-level
- * hardcoded utilities are converted to semantic tokens in the Phase 2 retrofit.
- */
-.dark {
-  color-scheme: dark;
-  --background: #0d1117;
-  --foreground: #e6edf3;
-  --surface: #161b22;
-  --steel-tint: rgba(120, 150, 200, 0.16);
-  --brand-tint: rgba(237, 28, 36, 0.14);
-  --focus-ring-color: #5b7fc0;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 30px -20px rgba(0, 0, 0, 0.7);
-
-  --fg: #e6edf3;
-  --fg-strong: #c9d1d9;
-  --fg-muted: #9da7b2;
-  --fg-subtle: #7d8590;
-  --fg-faint: #6e7681;
-  --card: #161b22;
-  --muted: #1c2128;
-  --muted-strong: #262c36;
-  --line: #30363d;
-  --line-subtle: #21262d;
-  --line-strong: #3d444d;
-  --canvas: #0d1117;
-}
-
-.dark body {
-  background-color: var(--background);
-  color: var(--foreground);
-}
-
 @theme inline {
-  --color-brand: var(--brand);
-  --color-brand-hover: var(--brand-hover);
-  --color-brand-active: var(--brand-active);
-  --color-steel: var(--steel);
-
-  /* Semantic neutral ramp exposed as Tailwind color utilities. */
-  --color-fg: var(--fg);
-  --color-fg-strong: var(--fg-strong);
-  --color-fg-muted: var(--fg-muted);
-  --color-fg-subtle: var(--fg-subtle);
-  --color-fg-faint: var(--fg-faint);
-  --color-card: var(--card);
-  --color-muted: var(--muted);
-  --color-muted-strong: var(--muted-strong);
-  --color-line: var(--line);
-  --color-line-subtle: var(--line-subtle);
-  --color-line-strong: var(--line-strong);
-  --color-canvas: var(--canvas);
-
   --font-display: var(--font-saira);
   --font-sans: var(--font-plex-sans);
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 3px;
-  --radius-xl: 3px;
-  --radius-2xl: 5px;
-  --radius-3xl: 8px;
 }
 
 body {
   @apply antialiased;
-  background-color: var(--muted);
+  background-color: var(--canvas);
   color: var(--fg);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
-
-.app-canvas {
-  background-color: var(--canvas);
-}
-
-.app-canvas-dots {
-  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.32) 0.8px, transparent 0.8px);
-  background-size: 20px 20px;
-}
-
-@keyframes module-enter-up {
-  from { opacity: 0; transform: translate3d(0, 22px, 0); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes module-enter-down {
-  from { opacity: 0; transform: translate3d(0, -22px, 0); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes module-enter-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.module-enter-up { animation: module-enter-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) both; }
-.module-enter-down { animation: module-enter-down 0.28s cubic-bezier(0.32, 0.72, 0, 1) both; }
-.module-enter-fade { animation: module-enter-fade 0.22s ease-out both; }
 
 .app-safe-x {
   padding-left: max(1rem, env(safe-area-inset-left));
@@ -155,42 +39,6 @@ body {
   }
 }
 
-.btn-primary {
-  @apply inline-flex min-h-10 items-center justify-center rounded-sm px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all;
-  background-color: var(--brand);
-}
-
-.btn-primary:hover {
-  background-color: var(--brand-hover);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-line bg-card px-4 py-2.5 text-sm font-semibold text-fg-strong transition-all hover:-translate-y-px hover:bg-muted hover:shadow-sm;
-}
-
-.btn-danger {
-  @apply inline-flex min-h-10 items-center justify-center rounded-sm border border-red-200 bg-card px-4 py-2.5 text-sm font-semibold text-brand transition-all hover:-translate-y-px hover:bg-red-50 hover:shadow-sm;
-}
-
-.input-field {
-  @apply w-full rounded-sm border border-line bg-card px-3 py-2.5 text-sm text-fg outline-none transition-colors focus:border-steel focus:ring-1 focus:ring-steel/30;
-}
-
-.card-panel {
-  @apply rounded-sm border border-line/80 bg-card;
-  box-shadow: var(--shadow-card);
-}
-
-.sidebar-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-.sidebar-scroll:hover {
-  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
-}
-
 @media (max-width: 639px) {
   .app-safe-x {
     padding-left: max(0.875rem, env(safe-area-inset-left));
@@ -207,66 +55,4 @@ body {
     min-height: 48px;
     font-size: 16px;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .module-enter-up,
-  .module-enter-down,
-  .module-enter-fade {
-    animation: module-enter-fade 0.15s ease-out both;
-  }
-
-  .btn-primary:hover,
-  .btn-secondary:hover,
-  .btn-danger:hover {
-    transform: none;
-  }
-}
-
-:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
-  outline: 2px solid var(--focus-ring-color);
-  outline-offset: 2px;
-}
-
-/* ============================================================
-   Add to globals.css in EACH app:
-     SO-Portal/app/globals.css
-     SO-Equipo-Movil/mini-os/src/app/globals.css
-     SO-Cotizador/frontend/app/globals.css
-     SO-Permisos/frontend/app/globals.css
-     SO-Carta-Responsiva/frontend/app/globals.css
-
-   SO-UI ships no stylesheet, so the keyframes its components reference have
-   to live in the consuming app (this is already how rail-glow and
-   module-enter-* work). @source already covers the package's utilities.
-   ============================================================ */
-
-/* Motion tokens, mirrored for CSS-only call sites. Keep in sync with motion.ts. */
-:root {
-  --motion-instant: 90ms;
-  --motion-quick: 180ms;
-  --motion-settle: 280ms;
-  --motion-ease: cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-/* SkeletonRow — one sweep per row, replacing animate-pulse on 30–40 nodes. */
-@keyframes so-skeleton-sweep {
-  0%        { transform: translateX(-120%) }
-  60%, 100% { transform: translateX(220%) }
-}
-
-/* RefreshButton — constant-velocity spin; the settle is a JS transform. */
-@keyframes so-refresh-spin {
-  to { transform: rotate(360deg) }
-}
-
-/* useUpdatedFlash — steel, not red: informs without alarming. */
-@keyframes so-updated-flash {
-  0%   { background-color: rgba(52, 80, 122, 0) }
-  18%  { background-color: var(--steel-tint) }
-  100% { background-color: rgba(52, 80, 122, 0) }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [style*="so-skeleton-sweep"] { animation: none }
 }
