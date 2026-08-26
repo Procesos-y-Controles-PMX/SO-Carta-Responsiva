@@ -8,6 +8,8 @@ import {
   GridThemeToggle,
   SIDEBAR_NAV_ACTIVE,
   SIDEBAR_NAV_IDLE,
+  SIDEBAR_NAV_LIST,
+  SIDEBAR_NAV_LIST_COLLAPSED,
   SIDEBAR_SHELL,
   SIDEBAR_USER_CARD,
 } from "@promexma/ui";
@@ -125,7 +127,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <PanelLeftClose className={cn("h-3.5 w-3.5 transition-transform", sidebarCollapsed && "rotate-180")} />
           </button>
         </div>
-        <nav className="sidebar-scroll flex-1 space-y-0.5 px-3 py-4">
+        <nav className={cn("sidebar-scroll flex-1 py-4", sidebarCollapsed ? SIDEBAR_NAV_LIST_COLLAPSED : SIDEBAR_NAV_LIST)}>
           {filteredNav.map((item) => (
             <Link
               key={item.href}
