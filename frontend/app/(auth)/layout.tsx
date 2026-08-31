@@ -31,7 +31,7 @@ import {
 
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
-import { ROLE_LABELS } from "@/lib/access";
+import { canGenerateCartas, canManageUsers, canViewAccesos, ROLE_LABELS } from "@/lib/access";
 import { logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
 import { cn } from "@/lib/utils";
@@ -71,6 +71,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   }
 
   const filteredNav = navItems.filter((item) => {
+    if (item.href === "/usuarios") return canManageUsers(user);
+    if (item.href === "/accesos") return canViewAccesos(user);
+    if (item.href === "/cartas/nueva") return canGenerateCartas(user);
     if (!item.roles) return true;
     return item.roles.includes(user.rol);
   });

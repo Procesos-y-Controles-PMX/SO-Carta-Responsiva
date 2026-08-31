@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccessLogsBoard from "@/components/admin/AccessLogsBoard";
 import PageHeader from "@/components/ui/PageHeader";
-import { isGeneralAdmin } from "@/lib/access";
+import { canViewAccesos } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 
 export default function AccesosPage() {
@@ -12,12 +12,12 @@ export default function AccesosPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (!user || !isGeneralAdmin(user))) {
+    if (!loading && (!user || !canViewAccesos(user))) {
       router.replace("/cartas");
     }
   }, [loading, user, router]);
 
-  if (loading || !user || !isGeneralAdmin(user)) return null;
+  if (loading || !user || !canViewAccesos(user)) return null;
 
   return (
     <div>
