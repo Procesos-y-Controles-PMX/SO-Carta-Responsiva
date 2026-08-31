@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isGeneralAdmin } from "@/lib/access";
+import { canViewAccesos } from "@/lib/access";
 import { getServerSessionUser } from "@/lib/server-session";
 import { fetchSoAccessLogs } from "@/lib/so-access-log";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const user = await getServerSessionUser();
-  if (!user || !isGeneralAdmin(user)) {
+  if (!user || !canViewAccesos(user)) {
     return NextResponse.json({ ok: false, message: "Acceso no autorizado." }, { status: 403 });
   }
 

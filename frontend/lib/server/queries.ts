@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  isGeneralAdmin,
+  isAppAdmin,
   normalizeRegion,
   scopeSucursales,
   userCanAccessSucursal,
@@ -92,7 +92,7 @@ export async function listAllResponsables(
     .select("*, cr_sucursales(id, nombre, region)")
     .order("nombre");
   const rows = (data as ResponsableRow[] | null) ?? [];
-  if (!user || isGeneralAdmin(user)) return rows;
+  if (!user || isAppAdmin(user)) return rows;
 
   const allowed = new Set(
     (await listSucursalesForUser(supabase, user)).map((s) => s.id),
@@ -427,7 +427,7 @@ export async function listCartas(
     .select(CARTA_SELECT)
     .order("created_at", { ascending: false });
 
-  if (!isGeneralAdmin(user)) {
+  if (!isAppAdmin(user)) {
     if (user.rol === "usuario") {
       if (!user.id_sucursal) return [];
       query = query.eq("id_sucursal", user.id_sucursal);

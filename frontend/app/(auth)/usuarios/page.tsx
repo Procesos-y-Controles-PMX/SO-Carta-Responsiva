@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { UserPlus } from "lucide-react";
 import UsuarioFormModal from "@/components/usuarios/UsuarioFormModal";
 import PageHeader from "@/components/ui/PageHeader";
-import { canManageMasterData, ROLE_LABELS } from "@/lib/access";
+import { canManageUsers, ROLE_LABELS } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import { deleteUsuario, listUsuarios, updateUsuario, type UsuarioRow } from "@/lib/queries/usuarios";
 import { listSucursales } from "@/lib/queries/sucursales";
@@ -21,7 +21,7 @@ function scopeLabel(row: UsuarioRow): string {
 export default function UsuariosPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const canEdit = Boolean(user && canManageMasterData(user));
+  const canEdit = Boolean(user && canManageUsers(user));
   const [rows, setRows] = useState<UsuarioRow[]>([]);
   const [sucursales, setSucursales] = useState<CrSucursal[]>([]);
   const [query, setQuery] = useState("");
@@ -30,7 +30,7 @@ export default function UsuariosPage() {
   const [editing, setEditing] = useState<UsuarioRow | null>(null);
 
   useEffect(() => {
-    if (!loading && (!user || !canManageMasterData(user))) {
+    if (!loading && (!user || !canManageUsers(user))) {
       router.replace("/cartas");
     }
   }, [loading, user, router]);

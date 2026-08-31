@@ -6,7 +6,7 @@ import { SkeletonRow } from "@promexma/ui";
 import AnimatedSearchInput from "@/components/common/AnimatedSearchInput";
 import FilterSelect from "@/components/common/FilterSelect";
 import PageHeader from "@/components/ui/PageHeader";
-import { canViewCompliance, isGeneralAdmin, isZoneAdmin } from "@/lib/access";
+import { canViewCompliance, isAppAdmin, isZoneAdmin } from "@/lib/access";
 import { useAuth } from "@/lib/auth";
 import {
   getComplianceReport,
@@ -197,7 +197,7 @@ export default function CumplimientoPage() {
     return <p className="text-sm text-fg-subtle">Inicia sesión para consultar el cumplimiento.</p>;
   }
 
-  const branchScoped = !isGeneralAdmin(user) && !isZoneAdmin(user);
+  const branchScoped = !isAppAdmin(user) && !isZoneAdmin(user);
   const subtitle = branchScoped
     ? "Consulta el cumplimiento de cartas de tu sucursal en el periodo seleccionado."
     : "Consulta quién generó cartas en el periodo y detecta sucursales pendientes.";

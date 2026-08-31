@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { canManageMasterData } from "@/lib/access";
+import { canManageUsers } from "@/lib/access";
 import { badRequest, forbidden, requireAuth } from "@/lib/api/require-auth";
 import {
   countActiveGeneralAdmins,
@@ -14,7 +14,7 @@ import type { UserRole } from "@/lib/types/db";
 export async function GET() {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
-  if (!canManageMasterData(auth.ctx.user)) return forbidden();
+  if (!canManageUsers(auth.ctx.user)) return forbidden();
 
   try {
     const rows = await listUsuarios(auth.ctx.supabase);
@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
-  if (!canManageMasterData(auth.ctx.user)) return forbidden();
+  if (!canManageUsers(auth.ctx.user)) return forbidden();
 
   const body = (await request.json()) as {
     email?: string;
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
-  if (!canManageMasterData(auth.ctx.user)) return forbidden();
+  if (!canManageUsers(auth.ctx.user)) return forbidden();
 
   const body = (await request.json()) as {
     id?: string;
@@ -120,7 +120,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await requireAuth();
   if (!auth.ok) return auth.response;
-  if (!canManageMasterData(auth.ctx.user)) return forbidden();
+  if (!canManageUsers(auth.ctx.user)) return forbidden();
 
   const body = (await request.json()) as { id?: string };
   if (!body.id) return badRequest("id es requerido.");

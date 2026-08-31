@@ -6,13 +6,22 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   administrador_general: "Administrador general",
 };
 
-/** Only these accounts may act as administrador general (Catálogo, Responsables, delete, all sucursales). */
+/** Platform owner: full access including Accesos. */
 export const GENERAL_ADMIN_EMAILS = [
   "fernando.corella@ext.cemex.com",
 ] as const;
 
+/** Full app access except Accesos (Catálogo, Responsables, Usuarios, cartas, all sucursales). */
+export const APP_ADMIN_EMAILS = [
+  "isabela.guzmana@cemex.com",
+] as const;
+
 const GENERAL_ADMIN_EMAIL_SET = new Set(
   GENERAL_ADMIN_EMAILS.map((email) => email.toLowerCase()),
+);
+
+const APP_ADMIN_EMAIL_SET = new Set(
+  APP_ADMIN_EMAILS.map((email) => email.toLowerCase()),
 );
 
 export function normalizeEmail(email: string): string {
@@ -21,6 +30,10 @@ export function normalizeEmail(email: string): string {
 
 export function isAllowlistedGeneralAdmin(user: Pick<CrUsuario, "email">): boolean {
   return GENERAL_ADMIN_EMAIL_SET.has(normalizeEmail(user.email));
+}
+
+export function isAllowlistedAppAdmin(user: Pick<CrUsuario, "email">): boolean {
+  return APP_ADMIN_EMAIL_SET.has(normalizeEmail(user.email));
 }
 
 /**
@@ -60,7 +73,17 @@ export function isGeneralAdmin(user: CrUsuario): boolean {
 }
 
 export function isZoneAdmin(user: CrUsuario): boolean {
-  return resolveEffectiveRole(user) === "administrador_zona";
+  return resolveEffectiveRole(user) === "administrador_zona" && !isAppAdmin(user);
+}
+
+/** Full app powers (all modules except Accesos). */
+export function isAppAdmin(user: CrUsuario): boolean {
+  return isGeneralAdmin(user) || isAllowlistedAppAdmin(user);
+}
+
+/** Accesos / audit logs — platform owner only. */
+export function canViewAccesos(user: CrUsuario): boolean {
+  return isAllowlistedGeneralAdmin(user);
 }
 
 /** Any signed-in user may open Cumplimiento; rows are scoped by sucursal/region. */
@@ -69,27 +92,30 @@ export function canViewCompliance(_user: CrUsuario): boolean {
 }
 
 export function canManageMasterData(user: CrUsuario): boolean {
-  return isGeneralAdmin(user);
+  return isAppAdmin(user);
+}
+
+export function canManageUsers(user: CrUsuario): boolean {
+  return isAppAdmin(user);
 }
 
 export function canGenerateCartas(user: CrUsuario): boolean {
-  return !isZoneAdmin(user);
+  return isAppAdmin(user) || !isZoneAdmin(user);
 }
 
 export function canEditCartas(user: CrUsuario): boolean {
-  return !isZoneAdmin(user);
+  return isAppAdmin(user) || !isZoneAdmin(user);
 }
 
-/** Destructive: only general admins may remove cartas from historial. */
 export function canDeleteCartas(user: CrUsuario): boolean {
-  return isGeneralAdmin(user);
+  return isAppAdmin(user);
 }
 
 export function userCanAccessSucursal(
   user: CrUsuario,
   sucursal: Pick<CrSucursal, "id" | "region">,
 ): boolean {
-  if (isGeneralAdmin(user)) return true;
+  if (isAppAdmin(user)) return true;
   if (isZoneAdmin(user)) {
     return (
       Boolean(user.region) &&
