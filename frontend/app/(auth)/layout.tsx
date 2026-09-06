@@ -2,16 +2,16 @@
 
 
 import {
-  InteractiveGridPattern,
-  ThemeToggle,
   GridLoadingScreen,
   GridThemeToggle,
+  NoiseField,
   SIDEBAR_NAV_ACTIVE,
   SIDEBAR_NAV_IDLE,
   SIDEBAR_NAV_LIST,
   SIDEBAR_NAV_LIST_COLLAPSED,
   SIDEBAR_SHELL,
   SIDEBAR_USER_CARD,
+  ThemeToggle,
 } from "@promexma/ui";
 import Image from "next/image";
 import Link from "next/link";
@@ -174,14 +174,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
       <div className={cn("relative min-h-screen transition-all duration-300 lg:ml-[250px]", sidebarCollapsed && "lg:ml-[72px]")}>
         <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden" aria-hidden>
-          <InteractiveGridPattern
-            cellSize={40}
-            skewY={6}
-            wave
-            waveDuration={5}
-            waveGap={4}
+          <NoiseField
             className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
-            squaresClassName="stroke-[var(--grid-line)]"
           />
         </div>
         <header className="app-safe-x sticky top-0 z-30 flex items-center gap-3 bg-transparent py-3 lg:py-4">
