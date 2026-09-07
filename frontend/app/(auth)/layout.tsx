@@ -177,14 +177,23 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={cn("relative min-h-screen transition-all duration-300 lg:ml-[250px]", sidebarCollapsed && "lg:ml-[72px]")}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden" aria-hidden>
-          <NoiseField
-            key={resolvedTheme ?? "dark"}
-            className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
-            color={isDark ? [255, 255, 255] : [52, 80, 122]}
-            maxOpacity={isDark ? 0.5 : 0.7}
+        {user.rol === "administrador_general" ? (
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden" aria-hidden>
+            <NoiseField
+              key={resolvedTheme ?? "dark"}
+              className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
+              color={isDark ? [255, 255, 255] : [52, 80, 122]}
+              maxOpacity={isDark ? 0.5 : 0.7}
+            />
+          </div>
+        ) : (
+          /* Flat canvas for everyone else. inset-0, not the field's h-screen:
+             a solid has to cover the whole scroll height, not just the fold. */
+          <div
+            className="pointer-events-none absolute inset-0 z-0 bg-[var(--ambient-flat)]"
+            aria-hidden
           />
-        </div>
+        )}
         <header className="app-safe-x sticky top-0 z-30 flex items-center gap-3 bg-transparent py-3 lg:py-4">
           <div className="min-w-0 flex-1">
             <h1 className="truncate font-display text-lg font-semibold tracking-tight text-fg lg:text-xl">

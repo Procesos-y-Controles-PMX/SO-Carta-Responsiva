@@ -5,6 +5,27 @@
 /* Class-based dark mode driven by next-themes (`attribute="class"`). */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ------------------------------------------------------------------
+   Ambient background.
+
+   The animated NoiseField is gated to the Administrador general; every
+   other user gets a flat canvas painted in this color instead.
+
+   Light is the panel color itself — the canvas and the panels already
+   share it, so removing the field changes nothing there. Dark cannot
+   reuse --canvas (#000, picked as a backdrop *for* the noise): with no
+   field on top it reads as a void, so it drops to the clay shade, the
+   same tone the panels already cast their shadows in.
+   ------------------------------------------------------------------ */
+:root {
+  --ambient-flat: var(--neu-bg);
+}
+
+.dark {
+  --ambient-flat: var(--clay-dark-shade);
+}
+
+
 @theme inline {
   --font-display: var(--font-saira);
   --font-sans: var(--font-plex-sans);
