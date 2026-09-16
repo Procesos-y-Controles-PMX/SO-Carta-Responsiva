@@ -125,3 +125,68 @@ export function useCustomAmbientNoise(
 
   return tune;
 }
+
+const BRAND_VAR_KEYS = [
+  "--brand",
+  "--brand-hover",
+  "--brand-active",
+  "--brand-tint",
+] as const;
+
+function clampByte(n: number) {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function mixRgb(
+  rgb: [number, number, number],
+  toward: [number, number, number],
+  t: number,
+): [number, number, number] {
+  return [
+    clampByte(rgb[0] + (toward[0] - rgb[0]) * t),
+    clampByte(rgb[1] + (toward[1] - rgb[1]) * t),
+    clampByte(rgb[2] + (toward[2] - rgb[2]) * t),
+  ];
+}
+
+function toHex(rgb: [number, number, number]) {
+  return `#${rgb.map((n) => clampByte(n).toString(16).padStart(2, "0")).join("")}`;
+}
+
+/** Map a NoiseField RGB onto clay `--brand*` tokens. */
+export function brandVarsFromColor(
+  color: [number, number, number],
+): Record<(typeof BRAND_VAR_KEYS)[number], string> {
+  const rgb: [number, number, number] = [
+    clampByte(color[0]),
+    clampByte(color[1]),
+    clampByte(color[2]),
+  ];
+  const hover = mixRgb(rgb, [0, 0, 0], 0.16);
+  const active = mixRgb(rgb, [0, 0, 0], 0.28);
+  return {
+    "--brand": toHex(rgb),
+    "--brand-hover": toHex(hover),
+    "--brand-active": toHex(active),
+    "--brand-tint": `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.14)`,
+  };
+}
+
+/** Retint brand chrome to the custom field color. Owner (no color) keeps red. */
+export function useAmbientBrand(
+  color: [number, number, number] | null | undefined,
+) {
+  const r = color?.[0];
+  const g = color?.[1];
+  const b = color?.[2];
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (r == null || g == null || b == null) return;
+    const vars = brandVarsFromColor([r, g, b]);
+    for (const key of BRAND_VAR_KEYS) root.style.setProperty(key, vars[key]);
+    return () => {
+      for (const key of BRAND_VAR_KEYS) root.style.removeProperty(key);
+    };
+  }, [r, g, b]);
+}
