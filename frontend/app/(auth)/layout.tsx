@@ -33,6 +33,7 @@ import {
 
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import { useCustomAmbientNoise } from "@/lib/ambient-noise";
 import { canGenerateCartas, canManageUsers, canViewAccesos, ROLE_LABELS } from "@/lib/access";
 import { logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
@@ -52,6 +53,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== "light";
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const customField = useCustomAmbientNoise(user?.email);
 
   const navItems: NavItem[] = useMemo(
     () => [
@@ -102,6 +104,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     .map((part) => part[0]?.toLocaleUpperCase("es-MX"))
     .join("");
   const roleLabel = ROLE_LABELS[user.rol];
+
+  const ambientAnimated = user.rol === "administrador_general" || Boolean(customField);
 
   return (
     <div className="min-h-screen app-canvas">
@@ -177,13 +181,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
 
       <div className={cn("relative min-h-screen transition-all duration-300 lg:ml-[250px]", sidebarCollapsed && "lg:ml-[72px]")}>
-        {user.rol === "administrador_general" ? (
+        {ambientAnimated ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-screen overflow-hidden" aria-hidden>
             <NoiseField
-              key={resolvedTheme ?? "dark"}
+              key={`${resolvedTheme ?? "dark"}-${customField ? "custom" : "default"}`}
               className="absolute inset-0 [mask-image:radial-gradient(ellipse_90%_80%_at_50%_40%,white,transparent)]"
               color={isDark ? [255, 255, 255] : [52, 80, 122]}
               maxOpacity={isDark ? 0.5 : 0.7}
+              {...customField}
             />
           </div>
         ) : (
