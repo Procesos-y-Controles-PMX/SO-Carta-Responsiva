@@ -33,7 +33,7 @@ import {
 
 import ModuleTransition from "@/components/common/ModuleTransition";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
-import { useCustomAmbientNoise } from "@/lib/ambient-noise";
+import { useAmbientBrand, useCustomAmbientNoise } from "@/lib/ambient-noise";
 import { canGenerateCartas, canManageUsers, canViewAccesos, ROLE_LABELS } from "@/lib/access";
 import { logout, useAuth } from "@/lib/auth";
 import type { UserRole } from "@/lib/types/db";
@@ -54,6 +54,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const isDark = resolvedTheme !== "light";
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const customField = useCustomAmbientNoise(user?.email);
+  useAmbientBrand(customField?.color);
 
   const navItems: NavItem[] = useMemo(
     () => [
