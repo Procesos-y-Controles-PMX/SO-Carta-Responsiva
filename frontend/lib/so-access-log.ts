@@ -144,7 +144,10 @@ export async function logSoAccess(input: AccessLogInput): Promise<void> {
 
     const { error } = await supabase.from("APP_ACCESS_LOG").insert(payload);
     if (error) {
-      const { NOMBRE: _nombre, APP: _app, ...legacy } = payload;
+      // Retry without NOMBRE only. APP must stay: the column defaults to 'equipo',
+      // so dropping it filed this app's logins under Equipo Móvil.
+      console.error("[access-log] insert failed, retrying without NOMBRE:", error.message);
+      const { NOMBRE: _nombre, ...legacy } = payload;
       const retry = await supabase.from("APP_ACCESS_LOG").insert(legacy);
       if (retry.error) {
         console.error("[access-log] insert failed:", retry.error.message);
